@@ -1,0 +1,14 @@
+node_modules/
+.tp/
+.spacefast/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+
+# tp/_generated/ is committed; tp/dist/ is build output.
+tp/dist/
+tp/.wp-plugins.build.lock
+tp/_generated/.typedpress-*-lock*
+tp/_generated/.typedpress-*-build-*/

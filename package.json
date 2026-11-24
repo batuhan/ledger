@@ -1,0 +1,19 @@
+{
+  "name": "ledger",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "typedpress dev",
+    "build": "typedpress build",
+    "check": "typedpress check",
+    "typecheck": "typedpress build --quiet && tsc --noEmit",
+    "stop": "typedpress dev stop",
+    "status": "typedpress dev status",
+    "wp": "typedpress wp"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.17",
+    "typedpress": "latest",
+    "typescript": "5.9.3"
+  }
+}
