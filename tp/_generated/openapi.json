@@ -15873,7 +15873,20 @@
                   "postedOn": { "type": "string" },
                   "description": { "type": "string" },
                   "amount": { "type": "string" },
-                  "entryKind": { "type": "string" },
+                  "entryKind": {
+                    "type": "string",
+                    "enum": [
+                      "expense",
+                      "income",
+                      "transfer",
+                      "fx_conversion",
+                      "card_payment",
+                      "inter_entity",
+                      "fee",
+                      "tax",
+                      "investment"
+                    ]
+                  },
                   "isPending": { "type": ["string", "boolean"] },
                   "notes": { "type": "string" }
                 },
@@ -15932,7 +15945,10 @@
                   "toAmount": { "type": "string" },
                   "feeAmount": { "type": "string" },
                   "executedOn": { "type": "string" },
-                  "transferKind": { "type": "string" },
+                  "transferKind": {
+                    "type": "string",
+                    "enum": ["same_currency", "fx_conversion", "card_payment", "inter_entity", "broker_funding"]
+                  },
                   "reference": { "type": "string" }
                 },
                 "required": ["fromAccountId", "toAccountId", "fromAmount", "executedOn"]
@@ -16156,8 +16172,8 @@
                 "properties": {
                   "recipientEmail": { "type": "string" },
                   "entityId": { "type": ["string", "number"] },
-                  "role": { "type": "string" },
-                  "scope": { "type": "string" }
+                  "role": { "type": "string", "enum": ["viewer", "accountant", "editor"] },
+                  "scope": { "type": "string", "enum": ["full", "tax_only", "read_only"] }
                 },
                 "required": ["recipientEmail"]
               }

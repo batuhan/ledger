@@ -30,52 +30,8 @@ import {
   type Currency,
 } from "./lib/money";
 
-function normalizeCurrency(raw: string | undefined, fallback: Currency): Currency {
-  if (raw === "EUR") return "EUR";
-  if (raw === "TRY") return "TRY";
-  if (raw === "USD") return "USD";
-  if (raw === "GBP") return "GBP";
-  if (raw === "CHF") return "CHF";
-  return fallback;
-}
-
 type EntryKind = "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
-
-function normalizeEntryKind(raw: string | undefined, fallback: EntryKind): EntryKind {
-  if (raw === "expense") return "expense";
-  if (raw === "income") return "income";
-  if (raw === "transfer") return "transfer";
-  if (raw === "fx_conversion") return "fx_conversion";
-  if (raw === "card_payment") return "card_payment";
-  if (raw === "inter_entity") return "inter_entity";
-  if (raw === "fee") return "fee";
-  if (raw === "tax") return "tax";
-  if (raw === "investment") return "investment";
-  return fallback;
-}
-
 type TransferKind = "same_currency" | "fx_conversion" | "card_payment" | "inter_entity" | "broker_funding";
-
-function normalizeTransferKind(raw: string | undefined, fallback: TransferKind): TransferKind {
-  if (raw === "same_currency") return "same_currency";
-  if (raw === "fx_conversion") return "fx_conversion";
-  if (raw === "card_payment") return "card_payment";
-  if (raw === "inter_entity") return "inter_entity";
-  if (raw === "broker_funding") return "broker_funding";
-  return fallback;
-}
-
-function normalizeInviteRole(raw: string | undefined): "viewer" | "accountant" | "editor" {
-  if (raw === "editor") return "editor";
-  if (raw === "viewer") return "viewer";
-  return "accountant";
-}
-
-function normalizeGrantScope(raw: string | undefined): "full" | "tax_only" | "read_only" {
-  if (raw === "full") return "full";
-  if (raw === "read_only") return "read_only";
-  return "tax_only";
-}
 
 // ---------------------------------------------------------------------------
 // FX lookup helper
@@ -225,8 +181,12 @@ export const processIngestItem = job({ retries: 2 }, async ({ ingestItemId }: { 
       for (const r of rows) {
         const amt = typeof r.amountMinor === "number" ? Math.round(r.amountMinor) : 0;
         if (amt === 0) continue;
-        const ccy = normalizeCurrency(r.currency, "EUR");
-        const kind = normalizeEntryKind(r.entryKind, "expense");
+        const ccy =
+          r.currency === "TRY" || r.currency === "USD" || r.currency === "GBP" || r.currency === "CHF"
+            ? r.currency
+            : "EUR";
+        const kind =
+          r.entryKind === "income" || r.entryKind === "transfer" || r.entryKind === "fee" ? r.entryKind : "expense";
         const rawPosted = r.postedOn ?? "";
         const postedOn = /^\d{4}-\d{2}-\d{2}$/.test(rawPosted) ? rawPosted : new Date().toISOString().slice(0, 10);
         const inst = typeof r.installmentCount === "number" && r.installmentCount >= 2 ? r.installmentCount : null;
@@ -504,7 +464,7 @@ export const recordEntry = mutation(
     postedOn: string;
     description: string;
     amount: string;
-    entryKind?: string;
+    entryKind?: EntryKind;
     isPending?: string | boolean;
     notes?: string;
   }) => {
@@ -528,7 +488,7 @@ export const recordEntry = mutation(
     const settings = await db.globals.financeSettings.get();
     const rateMicros = await lookupRateMicros(account.currency, settings.baseCurrency);
     const baseAmountMinor = convertToBaseMinor(amountMinor, rateMicros);
-    const kind = normalizeEntryKind(entryKind, amountMinor > 0 ? "income" : "expense");
+    const kind = entryKind ?? (amountMinor > 0 ? "income" : "expense");
     const pendingBool = isPending === true || isPending === "true" || isPending === "on" || isPending === "1";
     const vatAmountMinor =
       cat && cat.vatRateBps > 0 ? Math.round((Math.abs(amountMinor) * cat.vatRateBps) / (10_000 + cat.vatRateBps)) : null;
@@ -584,7 +544,7 @@ export const recordTransfer = mutation(
     toAmount?: string;
     feeAmount?: string;
     executedOn: string;
-    transferKind?: string;
+    transferKind?: TransferKind;
     reference?: string;
   }) => {
     const fromId = Number(fromAccountId);
@@ -615,7 +575,7 @@ export const recordTransfer = mutation(
           : toAcc.accountType === "credit_card"
             ? "card_payment"
             : "same_currency";
-    const resolvedKind = normalizeTransferKind(transferKind, inferredKind);
+    const resolvedKind = transferKind ?? inferredKind;
 
     const [transfer] = await db
       .insert(transfers)
@@ -787,8 +747,8 @@ export const createInvitation = mutation(
   }: {
     recipientEmail: string;
     entityId?: string | number;
-    role?: string;
-    scope?: string;
+    role?: "viewer" | "accountant" | "editor";
+    scope?: "full" | "tax_only" | "read_only";
   }) => {
     const cleanEmail = recipientEmail.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
@@ -796,15 +756,13 @@ export const createInvitation = mutation(
     }
     const entNum = entityId ? Number(entityId) : 0;
     const expiresAt = new Date(Date.now() + 14 * 86_400_000).toISOString();
-    const resolvedRole = normalizeInviteRole(role);
-    const resolvedScope = normalizeGrantScope(scope);
     const [created] = await db
       .insert(invitations)
       .values({
         recipientEmail: cleanEmail,
         entityId: Number.isInteger(entNum) && entNum > 0 ? entNum : null,
-        role: resolvedRole,
-        scope: resolvedScope,
+        role: role ?? "accountant",
+        scope: scope ?? "tax_only",
         status: "pending",
         expiresAt,
       })

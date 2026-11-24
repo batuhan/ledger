@@ -173,10 +173,10 @@ export type RejectProposalOutput = { proposalId: number; status: "rejected" };
 export interface ApplyAllProposalsInput { ingestItemId: number }
 export type ApplyAllProposalsOutput = { ingestItemId: number; applied: number };
 
-export interface RecordEntryInput { accountId: string | number; categoryId?: string | number; postedOn: string; description: string; amount: string; entryKind?: string; isPending?: string | boolean; notes?: string }
+export interface RecordEntryInput { accountId: string | number; categoryId?: string | number; postedOn: string; description: string; amount: string; entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment"; isPending?: string | boolean; notes?: string }
 export type RecordEntryOutput = { id: number };
 
-export interface RecordTransferInput { fromAccountId: string | number; toAccountId: string | number; fromAmount: string; toAmount?: string; feeAmount?: string; executedOn: string; transferKind?: string; reference?: string }
+export interface RecordTransferInput { fromAccountId: string | number; toAccountId: string | number; fromAmount: string; toAmount?: string; feeAmount?: string; executedOn: string; transferKind?: "same_currency" | "fx_conversion" | "card_payment" | "inter_entity" | "broker_funding"; reference?: string }
 export type RecordTransferOutput = { id: number; kind: "same_currency" | "fx_conversion" | "card_payment" | "inter_entity" | "broker_funding" };
 
 export interface SetReviewStatusInput { entryId: number; reviewStatus?: "unreviewed" | "reviewed" | "flagged"; excludeFromBudget?: boolean; excludeFromTotals?: boolean; categoryId?: number | null }
@@ -188,7 +188,7 @@ export type CreateShareLinkOutput = { id: number; token: string };
 export interface RevokeShareLinkInput { linkId: string | number }
 export type RevokeShareLinkOutput = { id: number; revoked: boolean };
 
-export interface CreateInvitationInput { recipientEmail: string; entityId?: string | number; role?: string; scope?: string }
+export interface CreateInvitationInput { recipientEmail: string; entityId?: string | number; role?: "viewer" | "accountant" | "editor"; scope?: "full" | "tax_only" | "read_only" }
 export type CreateInvitationOutput = { id: number; token: string };
 
 export interface AcceptInvitationInput { token: string }

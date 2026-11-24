@@ -6729,7 +6729,7 @@ export interface RecordEntryInput {
 	postedOn: string;
 	description: string;
 	amount: string;
-	entryKind?: string;
+	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
 	isPending?: string | boolean;
 	notes?: string;
 }
@@ -6743,7 +6743,7 @@ export interface RecordTransferInput {
 	toAmount?: string;
 	feeAmount?: string;
 	executedOn: string;
-	transferKind?: string;
+	transferKind?: "same_currency" | "fx_conversion" | "card_payment" | "inter_entity" | "broker_funding";
 	reference?: string;
 }
 export type RecordTransferOutput = {
@@ -6784,8 +6784,8 @@ export type RevokeShareLinkOutput = {
 export interface CreateInvitationInput {
 	recipientEmail: string;
 	entityId?: string | number;
-	role?: string;
-	scope?: string;
+	role?: "viewer" | "accountant" | "editor";
+	scope?: "full" | "tax_only" | "read_only";
 }
 export type CreateInvitationOutput = {
 	id: number;
