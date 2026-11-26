@@ -27,6 +27,18 @@ export const SCHEMA = {
       "setReviewStatus": {
         "ability": "set-review-status"
       },
+      "createReimbursementClaim": {
+        "ability": "create-reimbursement-claim"
+      },
+      "addReimbursementLine": {
+        "ability": "add-reimbursement-line"
+      },
+      "updateReimbursementState": {
+        "ability": "update-reimbursement-state"
+      },
+      "settleReimbursementClaim": {
+        "ability": "settle-reimbursement-claim"
+      },
       "createShareLink": {
         "ability": "create-share-link"
       },
@@ -117,6 +129,11 @@ export const SCHEMA = {
         "ingestProposals": {
           "kind": "many",
           "collection": "ingestProposals",
+          "optional": false
+        },
+        "reimbursementClaims": {
+          "kind": "many",
+          "collection": "reimbursementClaims",
           "optional": false
         },
         "grants": {
@@ -217,6 +234,11 @@ export const SCHEMA = {
           "collection": "ingestProposals",
           "optional": false
         },
+        "reimbursementClaims": {
+          "kind": "many",
+          "collection": "reimbursementClaims",
+          "optional": false
+        },
         "grants": {
           "kind": "many",
           "collection": "grants",
@@ -304,6 +326,11 @@ export const SCHEMA = {
           "kind": "many",
           "collection": "ingestProposals",
           "optional": false
+        },
+        "reimbursementLines": {
+          "kind": "many",
+          "collection": "reimbursementLines",
+          "optional": false
         }
       },
       "media": [],
@@ -332,6 +359,11 @@ export const SCHEMA = {
         "entries": {
           "kind": "many",
           "collection": "entries",
+          "optional": false
+        },
+        "reimbursementClaims": {
+          "kind": "many",
+          "collection": "reimbursementClaims",
           "optional": false
         }
       },
@@ -470,6 +502,11 @@ export const SCHEMA = {
           "kind": "many",
           "collection": "entries",
           "optional": false
+        },
+        "reimbursementClaims": {
+          "kind": "many",
+          "collection": "reimbursementClaims",
+          "optional": false
         }
       },
       "media": [],
@@ -558,6 +595,16 @@ export const SCHEMA = {
           "kind": "one",
           "collection": "installmentPlans",
           "optional": true
+        },
+        "reimbursementClaims": {
+          "kind": "many",
+          "collection": "reimbursementClaims",
+          "optional": false
+        },
+        "reimbursementLines": {
+          "kind": "many",
+          "collection": "reimbursementLines",
+          "optional": false
         }
       },
       "media": [],
@@ -667,6 +714,81 @@ export const SCHEMA = {
       "files": [],
       "ability": "ingest-proposals"
     },
+    "reimbursementClaims": {
+      "path": "reimbursement_claims",
+      "primaryKey": "id",
+      "drafts": false,
+      "revisions": true,
+      "softDelete": true,
+      "localized": false,
+      "relations": {
+        "businessEntityId": {
+          "kind": "one",
+          "collection": "legalEntities",
+          "optional": true
+        },
+        "counterpartyPayeeId": {
+          "kind": "one",
+          "collection": "payees",
+          "optional": true
+        },
+        "reimburseToAccountId": {
+          "kind": "one",
+          "collection": "accounts",
+          "optional": true
+        },
+        "payoutTransferId": {
+          "kind": "one",
+          "collection": "transfers",
+          "optional": true
+        },
+        "payoutEntryId": {
+          "kind": "one",
+          "collection": "entries",
+          "optional": true
+        },
+        "lines": {
+          "kind": "many",
+          "collection": "reimbursementLines",
+          "optional": false
+        }
+      },
+      "media": [],
+      "mediaList": [],
+      "files": [],
+      "ability": "reimbursement-claims"
+    },
+    "reimbursementLines": {
+      "path": "reimbursement_lines",
+      "primaryKey": "id",
+      "drafts": false,
+      "revisions": true,
+      "softDelete": true,
+      "localized": false,
+      "relations": {
+        "claimId": {
+          "kind": "one",
+          "collection": "reimbursementClaims",
+          "optional": false
+        },
+        "sourceEntryId": {
+          "kind": "one",
+          "collection": "entries",
+          "optional": false
+        },
+        "businessCategoryId": {
+          "kind": "one",
+          "collection": "categories",
+          "optional": true
+        }
+      },
+      "media": [],
+      "mediaList": [],
+      "files": [
+        "receiptFileId"
+      ],
+      "ability": "reimbursement-lines"
+    },
     "grants": {
       "path": "grants",
       "primaryKey": "id",
@@ -764,6 +886,10 @@ export const SCHEMA = {
     "recordEntry",
     "recordTransfer",
     "setReviewStatus",
+    "createReimbursementClaim",
+    "addReimbursementLine",
+    "updateReimbursementState",
+    "settleReimbursementClaim",
     "createShareLink",
     "revokeShareLink",
     "createInvitation",

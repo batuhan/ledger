@@ -61,6 +61,8 @@
     { "name": "Valuations", "description": "A table of the app's own." },
     { "name": "Fx Rates", "description": "A table of the app's own." },
     { "name": "Ingest Proposals", "description": "A table of the app's own." },
+    { "name": "Reimbursement Claims", "description": "A table of the app's own." },
+    { "name": "Reimbursement Lines", "description": "A table of the app's own." },
     { "name": "Grants", "description": "A table of the app's own." },
     { "name": "Invitations", "description": "A table of the app's own." },
     { "name": "Share Links", "description": "A table of the app's own." },
@@ -139,7 +141,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `accounts`, `cards`, `categories`, `recurringItems`, `ingestItems`, `financeMemos`, `installmentPlans`, `entries`, `trades`, `valuations`, `ingestProposals`, `grants`, `invitations`, `shareLinks`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `accounts`, `cards`, `categories`, `recurringItems`, `ingestItems`, `financeMemos`, `installmentPlans`, `entries`, `trades`, `valuations`, `ingestProposals`, `reimbursementClaims`, `grants`, `invitations`, `shareLinks`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           }
         ],
@@ -236,7 +238,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `accounts`, `cards`, `categories`, `recurringItems`, `ingestItems`, `financeMemos`, `installmentPlans`, `entries`, `trades`, `valuations`, `ingestProposals`, `grants`, `invitations`, `shareLinks`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `accounts`, `cards`, `categories`, `recurringItems`, `ingestItems`, `financeMemos`, `installmentPlans`, `entries`, `trades`, `valuations`, `ingestProposals`, `reimbursementClaims`, `grants`, `invitations`, `shareLinks`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           },
           {
@@ -2215,7 +2217,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `institutionId`, `cards`, `recurringItems`, `ingestItems`, `installmentPlans`, `entries`, `trades`, `valuations`, `ingestProposals`, `grants`, `shareLinks`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `institutionId`, `cards`, `recurringItems`, `ingestItems`, `installmentPlans`, `entries`, `trades`, `valuations`, `ingestProposals`, `reimbursementClaims`, `grants`, `shareLinks`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           }
         ],
@@ -2312,7 +2314,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `institutionId`, `cards`, `recurringItems`, `ingestItems`, `installmentPlans`, `entries`, `trades`, `valuations`, `ingestProposals`, `grants`, `shareLinks`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `institutionId`, `cards`, `recurringItems`, `ingestItems`, `installmentPlans`, `entries`, `trades`, `valuations`, `ingestProposals`, `reimbursementClaims`, `grants`, `shareLinks`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           },
           {
@@ -4369,7 +4371,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `payees`, `recurringItems`, `installmentPlans`, `entries`, `ingestProposals`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `payees`, `recurringItems`, `installmentPlans`, `entries`, `ingestProposals`, `reimbursementLines`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           }
         ],
@@ -4466,7 +4468,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `payees`, `recurringItems`, `installmentPlans`, `entries`, `ingestProposals`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `payees`, `recurringItems`, `installmentPlans`, `entries`, `ingestProposals`, `reimbursementLines`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           },
           {
@@ -5374,7 +5376,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `defaultCategoryId`, `recurringItems`, `entries`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `defaultCategoryId`, `recurringItems`, `entries`, `reimbursementClaims`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           }
         ],
@@ -5465,7 +5467,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `defaultCategoryId`, `recurringItems`, `entries`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `defaultCategoryId`, `recurringItems`, `entries`, `reimbursementClaims`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           },
           {
@@ -10465,7 +10467,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `fromAccountId`, `toAccountId`, `entries`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `fromAccountId`, `toAccountId`, `entries`, `reimbursementClaims`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           }
         ],
@@ -10560,7 +10562,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `fromAccountId`, `toAccountId`, `entries`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `fromAccountId`, `toAccountId`, `entries`, `reimbursementClaims`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           }
         ],
@@ -11477,7 +11479,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `accountId`, `cardId`, `categoryId`, `payeeId`, `transferId`, `installmentPlanId`, `receiptFileId`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `accountId`, `cardId`, `categoryId`, `payeeId`, `transferId`, `installmentPlanId`, `reimbursementClaims`, `reimbursementLines`, `receiptFileId`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           }
         ],
@@ -11578,7 +11580,7 @@
           {
             "name": "with",
             "in": "query",
-            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `accountId`, `cardId`, `categoryId`, `payeeId`, `transferId`, `installmentPlanId`, `receiptFileId`. A relation holds only rows the caller may read.",
+            "description": "What to load with each row, comma-separated or as a JSON object: `entityId`, `accountId`, `cardId`, `categoryId`, `payeeId`, `transferId`, `installmentPlanId`, `reimbursementClaims`, `reimbursementLines`, `receiptFileId`. A relation holds only rows the caller may read.",
             "schema": { "type": "string" }
           }
         ],
@@ -13881,6 +13883,970 @@
         }
       }
     },
+    "/reimbursement_claims": {
+      "get": {
+        "tags": ["Reimbursement Claims"],
+        "operationId": "reimbursementClaims.list",
+        "summary": "List reimbursement_claims",
+        "x-typedpress-access": "authenticated",
+        "description": "The reimbursement_claims rows the caller may read, one page at a time. `limit` is 50 unless given, and at most 100; `cursor` is null on the last page.\n\nAccess: Any signed-in user may do this.",
+        "parameters": [
+          {
+            "name": "where",
+            "in": "query",
+            "description": "A filter, as JSON: a value or operators per field, with `AND`, `OR` and `NOT`. A filter on a field the caller may not read is refused.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReimbursementClaimFilter" }
+              }
+            }
+          },
+          {
+            "name": "orderBy",
+            "in": "query",
+            "description": "Fields to sort by, comma-separated; `-` before a field sorts it descending (`-createdAt,title`). Fields: `id`, `title`, `payerKind`, `businessEntityId`, `counterpartyPayeeId`, `reimburseToAccountId`, `claimState`, `currency`, `totalMinor`, `reimbursedBaseMinor`, `fxVarianceMinor`, `payoutTransferId`, `payoutEntryId`, `externalRef`, `submittedOn`, `paidOn`, `notes`, `createdAt`, `author`, `updatedAt`, `deletedAt`, `deletedBy`.",
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/offset" },
+          { "$ref": "#/components/parameters/cursor" },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Words to find, each at the start of a word, in the title, the content and every text field the caller may read. Only rows the caller may read are found, in the list's own order.",
+            "schema": { "type": "string", "maxLength": 200 }
+          },
+          {
+            "name": "deleted",
+            "in": "query",
+            "description": "Soft-deleted rows filter: `exclude` (default), `include`, or `only`.",
+            "schema": { "type": "string", "enum": ["exclude", "include", "only"] }
+          },
+          {
+            "name": "with",
+            "in": "query",
+            "description": "What to load with each row, comma-separated or as a JSON object: `businessEntityId`, `counterpartyPayeeId`, `reimburseToAccountId`, `payoutTransferId`, `payoutEntryId`, `lines`. A relation holds only rows the caller may read.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of rows.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/ReimbursementClaim" }
+                    },
+                    "cursor": { "type": ["string", "null"] }
+                  },
+                  "required": ["data", "cursor"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      },
+      "post": {
+        "tags": ["Reimbursement Claims"],
+        "operationId": "reimbursementClaims.create",
+        "summary": "Create in reimbursement_claims",
+        "x-typedpress-access": "editor",
+        "description": "Creates one reimbursement_claims row and returns it.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "A key of 1 to 64 characters. A repeat of the request with the same key and body answers with the first result instead of running again; the same key with another body is refused.",
+            "schema": { "type": "string", "minLength": 1, "maxLength": 64 }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The new row's fields.",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReimbursementClaimInsert" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new row.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementClaim" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_claims/{id}": {
+      "get": {
+        "tags": ["Reimbursement Claims"],
+        "operationId": "reimbursementClaims.get",
+        "summary": "Get one of reimbursement_claims",
+        "x-typedpress-access": "authenticated",
+        "description": "One reimbursement_claims row.\n\nAccess: Any signed-in user may do this.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "with",
+            "in": "query",
+            "description": "What to load with each row, comma-separated or as a JSON object: `businessEntityId`, `counterpartyPayeeId`, `reimburseToAccountId`, `payoutTransferId`, `payoutEntryId`, `lines`. A relation holds only rows the caller may read.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The row.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementClaim" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      },
+      "patch": {
+        "tags": ["Reimbursement Claims"],
+        "operationId": "reimbursementClaims.update",
+        "summary": "Update in reimbursement_claims",
+        "x-typedpress-access": "editor",
+        "description": "Changes the fields sent on one reimbursement_claims row and returns the row.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The fields to change.",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReimbursementClaimPatch" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The row after the change.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementClaim" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      },
+      "delete": {
+        "tags": ["Reimbursement Claims"],
+        "operationId": "reimbursementClaims.delete",
+        "summary": "Delete from reimbursement_claims",
+        "x-typedpress-access": "admin",
+        "description": "Deletes one reimbursement_claims row for good and returns the row as it was.\n\nAccess: Users with the `admin` role or a higher one may do this.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "_rev",
+            "in": "query",
+            "description": "The `_rev` of your read: the delete is refused with `409 stale_revision` if the row changed since.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deleted row.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementClaim" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_claims/{id}/restore": {
+      "post": {
+        "tags": ["Reimbursement Claims"],
+        "operationId": "reimbursementClaims.restore",
+        "summary": "Restore a soft-deleted reimbursement_claims",
+        "x-typedpress-access": "admin",
+        "description": "Restores a soft-deleted reimbursement_claims row and returns it.\n\nAccess: Users with the `admin` role or a higher one may do this.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The restored row.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementClaim" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_claims/{id}/revisions": {
+      "get": {
+        "tags": ["Reimbursement Claims"],
+        "operationId": "reimbursementClaims.revisions.list",
+        "summary": "Revisions of reimbursement_claims",
+        "x-typedpress-access": "editor",
+        "description": "Each saved version of the row, newest first, with its version, op, time, author, schemaMigration, and changed fields, one page at a time. `limit` is 50 unless given, and at most 100; `cursor` is null on the last page.\n\nAccess: Users with the `editor` role or a higher one may do this.\n\nNeeds the kind's update rule on the row; a row outside it is a 404.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/offset" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of rows.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/RevisionSummary" }
+                    },
+                    "cursor": { "type": ["string", "null"] }
+                  },
+                  "required": ["data", "cursor"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_claims/{id}/revisions/diff": {
+      "get": {
+        "tags": ["Reimbursement Claims"],
+        "operationId": "reimbursementClaims.revisions.diff",
+        "summary": "Diff two revisions of reimbursement_claims",
+        "x-typedpress-access": "editor",
+        "description": "Field-by-field before/after diff between two revision ids or versions.\n\nAccess: Users with the `editor` role or a higher one may do this.\n\nNeeds the kind's update rule on the row; a row outside it is a 404.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "The starting revision id or version (optional).",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "The target revision id or version.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The changed fields.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/RevisionDiff" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_claims/{id}/revisions/{revision}": {
+      "get": {
+        "tags": ["Reimbursement Claims"],
+        "operationId": "reimbursementClaims.revisions.get",
+        "summary": "Get a revision of reimbursement_claims",
+        "x-typedpress-access": "editor",
+        "description": "The row as this revision saved it.\n\nAccess: Users with the `editor` role or a higher one may do this.\n\nNeeds the kind's update rule on the row; a row outside it is a 404.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "revision",
+            "in": "path",
+            "required": true,
+            "description": "The revision's id or version.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The row as it was.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementClaim" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_claims/{id}/revisions/{revision}/restore": {
+      "post": {
+        "tags": ["Reimbursement Claims"],
+        "operationId": "reimbursementClaims.revisions.restore",
+        "summary": "Restore a revision of reimbursement_claims",
+        "x-typedpress-access": "editor",
+        "description": "Makes the revision the current row, as an update of the row.\n\nAccess: Users with the `editor` role or a higher one may do this.\n\nNeeds the kind's update rule on the row; a row outside it is a 404.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "revision",
+            "in": "path",
+            "required": true,
+            "description": "The revision's id or version.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The row after the restore.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementClaim" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_lines": {
+      "get": {
+        "tags": ["Reimbursement Lines"],
+        "operationId": "reimbursementLines.list",
+        "summary": "List reimbursement_lines",
+        "x-typedpress-access": "authenticated",
+        "description": "The reimbursement_lines rows the caller may read, one page at a time. `limit` is 50 unless given, and at most 100; `cursor` is null on the last page.\n\nAccess: Any signed-in user may do this.",
+        "parameters": [
+          {
+            "name": "where",
+            "in": "query",
+            "description": "A filter, as JSON: a value or operators per field, with `AND`, `OR` and `NOT`. A filter on a field the caller may not read is refused.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReimbursementLineFilter" }
+              }
+            }
+          },
+          {
+            "name": "orderBy",
+            "in": "query",
+            "description": "Fields to sort by, comma-separated; `-` before a field sorts it descending (`-createdAt,title`). Fields: `id`, `claimId`, `sourceEntryId`, `businessCategoryId`, `splitBps`, `reimbursableMinor`, `currency`, `baseMinor`, `receiptFileId`, `notes`, `author`, `createdAt`, `updatedAt`, `deletedAt`, `deletedBy`.",
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/offset" },
+          { "$ref": "#/components/parameters/cursor" },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Words to find, each at the start of a word, in the title, the content and every text field the caller may read. Only rows the caller may read are found, in the list's own order.",
+            "schema": { "type": "string", "maxLength": 200 }
+          },
+          {
+            "name": "deleted",
+            "in": "query",
+            "description": "Soft-deleted rows filter: `exclude` (default), `include`, or `only`.",
+            "schema": { "type": "string", "enum": ["exclude", "include", "only"] }
+          },
+          {
+            "name": "with",
+            "in": "query",
+            "description": "What to load with each row, comma-separated or as a JSON object: `claimId`, `sourceEntryId`, `businessCategoryId`, `receiptFileId`. A relation holds only rows the caller may read.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of rows.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/ReimbursementLine" }
+                    },
+                    "cursor": { "type": ["string", "null"] }
+                  },
+                  "required": ["data", "cursor"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      },
+      "post": {
+        "tags": ["Reimbursement Lines"],
+        "operationId": "reimbursementLines.create",
+        "summary": "Create in reimbursement_lines",
+        "x-typedpress-access": "editor",
+        "description": "Creates one reimbursement_lines row and returns it.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "A key of 1 to 64 characters. A repeat of the request with the same key and body answers with the first result instead of running again; the same key with another body is refused.",
+            "schema": { "type": "string", "minLength": 1, "maxLength": 64 }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The new row's fields.",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReimbursementLineInsert" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new row.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementLine" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_lines/{id}": {
+      "get": {
+        "tags": ["Reimbursement Lines"],
+        "operationId": "reimbursementLines.get",
+        "summary": "Get one of reimbursement_lines",
+        "x-typedpress-access": "authenticated",
+        "description": "One reimbursement_lines row.\n\nAccess: Any signed-in user may do this.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "with",
+            "in": "query",
+            "description": "What to load with each row, comma-separated or as a JSON object: `claimId`, `sourceEntryId`, `businessCategoryId`, `receiptFileId`. A relation holds only rows the caller may read.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The row.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementLine" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      },
+      "patch": {
+        "tags": ["Reimbursement Lines"],
+        "operationId": "reimbursementLines.update",
+        "summary": "Update in reimbursement_lines",
+        "x-typedpress-access": "editor",
+        "description": "Changes the fields sent on one reimbursement_lines row and returns the row.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The fields to change.",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReimbursementLinePatch" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The row after the change.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementLine" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      },
+      "delete": {
+        "tags": ["Reimbursement Lines"],
+        "operationId": "reimbursementLines.delete",
+        "summary": "Delete from reimbursement_lines",
+        "x-typedpress-access": "editor",
+        "description": "Deletes one reimbursement_lines row for good and returns the row as it was.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "_rev",
+            "in": "query",
+            "description": "The `_rev` of your read: the delete is refused with `409 stale_revision` if the row changed since.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deleted row.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementLine" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_lines/{id}/restore": {
+      "post": {
+        "tags": ["Reimbursement Lines"],
+        "operationId": "reimbursementLines.restore",
+        "summary": "Restore a soft-deleted reimbursement_lines",
+        "x-typedpress-access": "editor",
+        "description": "Restores a soft-deleted reimbursement_lines row and returns it.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The restored row.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementLine" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_lines/{id}/revisions": {
+      "get": {
+        "tags": ["Reimbursement Lines"],
+        "operationId": "reimbursementLines.revisions.list",
+        "summary": "Revisions of reimbursement_lines",
+        "x-typedpress-access": "editor",
+        "description": "Each saved version of the row, newest first, with its version, op, time, author, schemaMigration, and changed fields, one page at a time. `limit` is 50 unless given, and at most 100; `cursor` is null on the last page.\n\nAccess: Users with the `editor` role or a higher one may do this.\n\nNeeds the kind's update rule on the row; a row outside it is a 404.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/offset" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of rows.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/RevisionSummary" }
+                    },
+                    "cursor": { "type": ["string", "null"] }
+                  },
+                  "required": ["data", "cursor"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_lines/{id}/revisions/diff": {
+      "get": {
+        "tags": ["Reimbursement Lines"],
+        "operationId": "reimbursementLines.revisions.diff",
+        "summary": "Diff two revisions of reimbursement_lines",
+        "x-typedpress-access": "editor",
+        "description": "Field-by-field before/after diff between two revision ids or versions.\n\nAccess: Users with the `editor` role or a higher one may do this.\n\nNeeds the kind's update rule on the row; a row outside it is a 404.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "The starting revision id or version (optional).",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "The target revision id or version.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The changed fields.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/RevisionDiff" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_lines/{id}/revisions/{revision}": {
+      "get": {
+        "tags": ["Reimbursement Lines"],
+        "operationId": "reimbursementLines.revisions.get",
+        "summary": "Get a revision of reimbursement_lines",
+        "x-typedpress-access": "editor",
+        "description": "The row as this revision saved it.\n\nAccess: Users with the `editor` role or a higher one may do this.\n\nNeeds the kind's update rule on the row; a row outside it is a 404.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "revision",
+            "in": "path",
+            "required": true,
+            "description": "The revision's id or version.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The row as it was.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementLine" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/reimbursement_lines/{id}/revisions/{revision}/restore": {
+      "post": {
+        "tags": ["Reimbursement Lines"],
+        "operationId": "reimbursementLines.revisions.restore",
+        "summary": "Restore a revision of reimbursement_lines",
+        "x-typedpress-access": "editor",
+        "description": "Makes the revision the current row, as an update of the row.\n\nAccess: Users with the `editor` role or a higher one may do this.\n\nNeeds the kind's update rule on the row; a row outside it is a 404.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The row's id.",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "revision",
+            "in": "path",
+            "required": true,
+            "description": "The revision's id or version.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The row after the restore.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ReimbursementLine" }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
     "/grants": {
       "get": {
         "tags": ["Grants"],
@@ -15882,6 +16848,7 @@
                       "fx_conversion",
                       "card_payment",
                       "inter_entity",
+                      "reimbursement",
                       "fee",
                       "tax",
                       "investment"
@@ -16032,6 +16999,238 @@
                         "excludeFromTotals": { "type": "boolean" }
                       },
                       "required": ["id", "reviewStatus", "excludeFromBudget", "excludeFromTotals"]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/actions/createReimbursementClaim": {
+      "post": {
+        "tags": ["Actions"],
+        "operationId": "actions.createReimbursementClaim",
+        "summary": "Call createReimbursementClaim",
+        "x-typedpress-access": "editor",
+        "description": "Runs the `createReimbursementClaim` action with the input sent and returns its result.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "requestBody": {
+          "required": true,
+          "description": "The action's input.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "payerKind": { "type": "string", "enum": ["internal_entity", "external_counterparty"] },
+                  "businessEntityId": { "type": ["string", "number"] },
+                  "counterpartyPayeeId": { "type": ["string", "number"] },
+                  "newCounterpartyName": { "type": "string" },
+                  "reimburseToAccountId": { "type": ["string", "number"] },
+                  "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
+                  "externalRef": { "type": "string" },
+                  "notes": { "type": "string" }
+                },
+                "required": ["title"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The action's result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": ["number", "null"] },
+                        "payerKind": { "type": ["string"], "enum": ["internal_entity", "external_counterparty"] }
+                      },
+                      "required": ["id", "payerKind"]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/actions/addReimbursementLine": {
+      "post": {
+        "tags": ["Actions"],
+        "operationId": "actions.addReimbursementLine",
+        "summary": "Call addReimbursementLine",
+        "x-typedpress-access": "editor",
+        "description": "Runs the `addReimbursementLine` action with the input sent and returns its result.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "requestBody": {
+          "required": true,
+          "description": "The action's input.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "claimId": { "type": ["string", "number"] },
+                  "sourceEntryId": { "type": ["string", "number"] },
+                  "splitPercent": { "type": ["string", "number"] },
+                  "businessCategoryId": { "type": ["string", "number"] },
+                  "notes": { "type": "string" }
+                },
+                "required": ["claimId", "sourceEntryId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The action's result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": ["number", "null"] },
+                        "claimId": { "type": ["number", "null"] },
+                        "totalMinor": { "type": ["number", "null"] }
+                      },
+                      "required": ["id", "claimId", "totalMinor"]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/actions/updateReimbursementState": {
+      "post": {
+        "tags": ["Actions"],
+        "operationId": "actions.updateReimbursementState",
+        "summary": "Call updateReimbursementState",
+        "x-typedpress-access": "editor",
+        "description": "Runs the `updateReimbursementState` action with the input sent and returns its result.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "requestBody": {
+          "required": true,
+          "description": "The action's input.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "claimId": { "type": "number" },
+                  "claimState": { "type": "string", "enum": ["draft", "submitted", "approved", "rejected"] }
+                },
+                "required": ["claimId", "claimState"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The action's result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": ["number", "null"] },
+                        "claimState": { "type": ["string"], "enum": ["draft", "submitted", "approved", "rejected"] }
+                      },
+                      "required": ["id", "claimState"]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/actions/settleReimbursementClaim": {
+      "post": {
+        "tags": ["Actions"],
+        "operationId": "actions.settleReimbursementClaim",
+        "summary": "Call settleReimbursementClaim",
+        "x-typedpress-access": "editor",
+        "description": "Runs the `settleReimbursementClaim` action with the input sent and returns its result.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "requestBody": {
+          "required": true,
+          "description": "The action's input.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "claimId": { "type": ["string", "number"] },
+                  "paidOn": { "type": "string" },
+                  "fromBusinessAccountId": { "type": ["string", "number"] },
+                  "toAccountId": { "type": ["string", "number"] },
+                  "payoutAmount": { "type": "string" },
+                  "existingPayoutEntryId": { "type": ["string", "number"] },
+                  "reference": { "type": "string" }
+                },
+                "required": ["claimId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The action's result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": ["number", "null"] },
+                        "claimState": { "type": "string" },
+                        "payoutTransferId": { "type": ["number", "null"] },
+                        "payoutEntryId": { "type": ["number", "null"] },
+                        "reimbursedBaseMinor": { "type": ["number", "null"] },
+                        "fxVarianceMinor": { "type": ["number", "null"] }
+                      },
+                      "required": ["id", "claimState", "payoutTransferId", "payoutEntryId", "reimbursedBaseMinor", "fxVarianceMinor"]
                     }
                   },
                   "required": ["data"]
@@ -16343,10 +17542,19 @@
                       "properties": {
                         "baseCurrency": { "type": ["string"], "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
                         "netWorthBaseMinor": { "type": ["number", "null"] },
+                        "receivablesBaseMinor": { "type": ["number", "null"] },
+                        "openClaimsCount": { "type": ["number", "null"] },
                         "accountCount": { "type": ["number", "null"] },
                         "unreviewedCount": { "type": ["number", "null"] }
                       },
-                      "required": ["baseCurrency", "netWorthBaseMinor", "accountCount", "unreviewedCount"]
+                      "required": [
+                        "baseCurrency",
+                        "netWorthBaseMinor",
+                        "receivablesBaseMinor",
+                        "openClaimsCount",
+                        "accountCount",
+                        "unreviewedCount"
+                      ]
                     }
                   },
                   "required": ["data"]
@@ -16392,10 +17600,19 @@
                       "properties": {
                         "baseCurrency": { "type": ["string"], "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
                         "netWorthBaseMinor": { "type": ["number", "null"] },
+                        "receivablesBaseMinor": { "type": ["number", "null"] },
+                        "openClaimsCount": { "type": ["number", "null"] },
                         "accountCount": { "type": ["number", "null"] },
                         "unreviewedCount": { "type": ["number", "null"] }
                       },
-                      "required": ["baseCurrency", "netWorthBaseMinor", "accountCount", "unreviewedCount"]
+                      "required": [
+                        "baseCurrency",
+                        "netWorthBaseMinor",
+                        "receivablesBaseMinor",
+                        "openClaimsCount",
+                        "accountCount",
+                        "unreviewedCount"
+                      ]
                     }
                   },
                   "required": ["data"]
@@ -18134,6 +19351,8 @@
                             "valuations",
                             "fxRates",
                             "ingestProposals",
+                            "reimbursementClaims",
+                            "reimbursementLines",
                             "grants",
                             "invitations",
                             "shareLinks",
@@ -18234,7 +19453,7 @@
           {
             "name": "kinds",
             "in": "query",
-            "description": "Only these kinds, comma-separated: `legal_entities`, `institutions`, `accounts`, `cards`, `categories`, `payees`, `recurring_items`, `securities`, `ingest_items`, `finance_memos`, `transfers`, `installment_plans`, `entries`, `trades`, `ingest_proposals`, `invitations`, `share_links`, `tags`.",
+            "description": "Only these kinds, comma-separated: `legal_entities`, `institutions`, `accounts`, `cards`, `categories`, `payees`, `recurring_items`, `securities`, `ingest_items`, `finance_memos`, `transfers`, `installment_plans`, `entries`, `trades`, `ingest_proposals`, `reimbursement_claims`, `reimbursement_lines`, `invitations`, `share_links`, `tags`.",
             "schema": { "type": "string" }
           },
           {
@@ -18279,6 +19498,8 @@
                                   "entries",
                                   "trades",
                                   "ingest_proposals",
+                                  "reimbursement_claims",
+                                  "reimbursement_lines",
                                   "invitations",
                                   "share_links",
                                   "tags"
@@ -18303,6 +19524,8 @@
                                     { "$ref": "#/components/schemas/Entry" },
                                     { "$ref": "#/components/schemas/Trade" },
                                     { "$ref": "#/components/schemas/IngestProposal" },
+                                    { "$ref": "#/components/schemas/ReimbursementClaim" },
+                                    { "$ref": "#/components/schemas/ReimbursementLine" },
                                     { "$ref": "#/components/schemas/Invitation" },
                                     { "$ref": "#/components/schemas/ShareLink" },
                                     { "$ref": "#/components/schemas/Tag" }
@@ -18621,6 +19844,11 @@
             "items": { "$ref": "#/components/schemas/IngestProposal" },
             "description": "Present when the request asks for it with `with`."
           },
+          "reimbursementClaims": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementClaim" },
+            "description": "Present when the request asks for it with `with`."
+          },
           "grants": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/Grant" },
@@ -18771,6 +19999,7 @@
           "trades": { "type": "object", "description": "A filter on the related rows." },
           "valuations": { "type": "object", "description": "A filter on the related rows." },
           "ingestProposals": { "type": "object", "description": "A filter on the related rows." },
+          "reimbursementClaims": { "type": "object", "description": "A filter on the related rows." },
           "grants": { "type": "object", "description": "A filter on the related rows." },
           "invitations": { "type": "object", "description": "A filter on the related rows." },
           "shareLinks": { "type": "object", "description": "A filter on the related rows." },
@@ -18970,6 +20199,11 @@
             "items": { "$ref": "#/components/schemas/IngestProposal" },
             "description": "Present when the request asks for it with `with`."
           },
+          "reimbursementClaims": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementClaim" },
+            "description": "Present when the request asks for it with `with`."
+          },
           "grants": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/Grant" },
@@ -19093,6 +20327,7 @@
           "trades": { "type": "object", "description": "A filter on the related rows." },
           "valuations": { "type": "object", "description": "A filter on the related rows." },
           "ingestProposals": { "type": "object", "description": "A filter on the related rows." },
+          "reimbursementClaims": { "type": "object", "description": "A filter on the related rows." },
           "grants": { "type": "object", "description": "A filter on the related rows." },
           "shareLinks": { "type": "object", "description": "A filter on the related rows." },
           "AND": {
@@ -19309,6 +20544,11 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/IngestProposal" },
             "description": "Present when the request asks for it with `with`."
+          },
+          "reimbursementLines": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementLine" },
+            "description": "Present when the request asks for it with `with`."
           }
         }
       },
@@ -19387,6 +20627,7 @@
           "installmentPlans": { "type": "object", "description": "A filter on the related rows." },
           "entries": { "type": "object", "description": "A filter on the related rows." },
           "ingestProposals": { "type": "object", "description": "A filter on the related rows." },
+          "reimbursementLines": { "type": "object", "description": "A filter on the related rows." },
           "AND": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/CategoryFilter" }
@@ -19437,6 +20678,11 @@
           "entries": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/Entry" },
+            "description": "Present when the request asks for it with `with`."
+          },
+          "reimbursementClaims": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementClaim" },
             "description": "Present when the request asks for it with `with`."
           }
         }
@@ -19495,6 +20741,7 @@
           "deletedBy": { "$ref": "#/components/schemas/IntegerFilter" },
           "recurringItems": { "type": "object", "description": "A filter on the related rows." },
           "entries": { "type": "object", "description": "A filter on the related rows." },
+          "reimbursementClaims": { "type": "object", "description": "A filter on the related rows." },
           "AND": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/PayeeFilter" }
@@ -20107,6 +21354,11 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/Entry" },
             "description": "Present when the request asks for it with `with`."
+          },
+          "reimbursementClaims": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementClaim" },
+            "description": "Present when the request asks for it with `with`."
           }
         }
       },
@@ -20185,6 +21437,7 @@
           "deletedAt": { "$ref": "#/components/schemas/StringFilter" },
           "deletedBy": { "$ref": "#/components/schemas/IntegerFilter" },
           "entries": { "type": "object", "description": "A filter on the related rows." },
+          "reimbursementClaims": { "type": "object", "description": "A filter on the related rows." },
           "AND": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/TransferFilter" }
@@ -20450,6 +21703,7 @@
               "fx_conversion",
               "card_payment",
               "inter_entity",
+              "reimbursement",
               "fee",
               "tax",
               "investment"
@@ -20473,6 +21727,16 @@
           "_rev": {
             "type": "string",
             "description": "A token of the row as read: send it back with a write to refuse the write if the row changed since."
+          },
+          "reimbursementClaims": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementClaim" },
+            "description": "Present when the request asks for it with `with`."
+          },
+          "reimbursementLines": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementLine" },
+            "description": "Present when the request asks for it with `with`."
           }
         }
       },
@@ -20503,6 +21767,7 @@
               "fx_conversion",
               "card_payment",
               "inter_entity",
+              "reimbursement",
               "fee",
               "tax",
               "investment"
@@ -20549,6 +21814,7 @@
               "fx_conversion",
               "card_payment",
               "inter_entity",
+              "reimbursement",
               "fee",
               "tax",
               "investment"
@@ -20605,6 +21871,8 @@
           "updatedAt": { "$ref": "#/components/schemas/StringFilter" },
           "deletedAt": { "$ref": "#/components/schemas/StringFilter" },
           "deletedBy": { "$ref": "#/components/schemas/IntegerFilter" },
+          "reimbursementClaims": { "type": "object", "description": "A filter on the related rows." },
+          "reimbursementLines": { "type": "object", "description": "A filter on the related rows." },
           "AND": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/EntryFilter" }
@@ -20979,6 +22247,7 @@
               "fx_conversion",
               "card_payment",
               "inter_entity",
+              "reimbursement",
               "fee",
               "tax",
               "investment"
@@ -21022,6 +22291,7 @@
               "fx_conversion",
               "card_payment",
               "inter_entity",
+              "reimbursement",
               "fee",
               "tax",
               "investment"
@@ -21057,6 +22327,7 @@
               "fx_conversion",
               "card_payment",
               "inter_entity",
+              "reimbursement",
               "fee",
               "tax",
               "investment"
@@ -21107,6 +22378,294 @@
             "items": { "$ref": "#/components/schemas/IngestProposalFilter" }
           },
           "NOT": { "$ref": "#/components/schemas/IngestProposalFilter" }
+        }
+      },
+      "ReimbursementClaim": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "payerKind": { "type": "string", "enum": ["internal_entity", "external_counterparty"] },
+          "businessEntityId": {
+            "anyOf": [
+              { "type": ["integer", "string", "object", "null"] },
+              {
+                "anyOf": [
+                  { "$ref": "#/components/schemas/LegalEntity" },
+                  { "type": "null" }
+                ]
+              }
+            ]
+          },
+          "counterpartyPayeeId": {
+            "anyOf": [
+              { "type": ["integer", "string", "object", "null"] },
+              {
+                "anyOf": [
+                  { "$ref": "#/components/schemas/Payee" },
+                  { "type": "null" }
+                ]
+              }
+            ]
+          },
+          "reimburseToAccountId": {
+            "anyOf": [
+              { "type": ["integer", "string", "object", "null"] },
+              {
+                "anyOf": [
+                  { "$ref": "#/components/schemas/Account" },
+                  { "type": "null" }
+                ]
+              }
+            ]
+          },
+          "claimState": { "type": "string", "enum": ["draft", "submitted", "approved", "paid", "rejected"] },
+          "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
+          "totalMinor": { "type": "integer" },
+          "reimbursedBaseMinor": { "type": ["integer", "null"] },
+          "fxVarianceMinor": { "type": "integer" },
+          "payoutTransferId": {
+            "anyOf": [
+              { "type": ["integer", "string", "object", "null"] },
+              {
+                "anyOf": [
+                  { "$ref": "#/components/schemas/Transfer" },
+                  { "type": "null" }
+                ]
+              }
+            ]
+          },
+          "payoutEntryId": {
+            "anyOf": [
+              { "type": ["integer", "string", "object", "null"] },
+              {
+                "anyOf": [
+                  { "$ref": "#/components/schemas/Entry" },
+                  { "type": "null" }
+                ]
+              }
+            ]
+          },
+          "externalRef": { "type": ["string", "null"], "maxLength": 120 },
+          "submittedOn": { "type": ["string", "null"] },
+          "paidOn": { "type": ["string", "null"] },
+          "notes": { "type": ["string", "null"] },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "author": { "type": ["integer", "null"] },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "deletedAt": { "type": ["string", "null"], "format": "date-time" },
+          "deletedBy": { "type": ["integer", "null"] },
+          "_rev": {
+            "type": "string",
+            "description": "A token of the row as read: send it back with a write to refuse the write if the row changed since."
+          },
+          "lines": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementLine" },
+            "description": "Present when the request asks for it with `with`."
+          }
+        }
+      },
+      "ReimbursementClaimInsert": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "payerKind": { "type": "string", "enum": ["internal_entity", "external_counterparty"] },
+          "businessEntityId": { "type": ["integer", "null"] },
+          "counterpartyPayeeId": { "type": ["integer", "null"] },
+          "reimburseToAccountId": { "type": ["integer", "null"] },
+          "claimState": { "type": "string", "enum": ["draft", "submitted", "approved", "paid", "rejected"] },
+          "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
+          "totalMinor": { "type": "integer" },
+          "reimbursedBaseMinor": { "type": ["integer", "null"] },
+          "fxVarianceMinor": { "type": "integer" },
+          "payoutTransferId": { "type": ["integer", "null"] },
+          "payoutEntryId": { "type": ["integer", "null"] },
+          "externalRef": { "type": ["string", "null"], "maxLength": 120 },
+          "submittedOn": { "type": ["string", "null"] },
+          "paidOn": { "type": ["string", "null"] },
+          "notes": { "type": ["string", "null"] },
+          "createdAt": { "type": ["string", "integer"] }
+        },
+        "required": ["title"]
+      },
+      "ReimbursementClaimPatch": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "payerKind": { "type": "string", "enum": ["internal_entity", "external_counterparty"] },
+          "businessEntityId": { "type": ["integer", "null"] },
+          "counterpartyPayeeId": { "type": ["integer", "null"] },
+          "reimburseToAccountId": { "type": ["integer", "null"] },
+          "claimState": { "type": "string", "enum": ["draft", "submitted", "approved", "paid", "rejected"] },
+          "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
+          "totalMinor": { "type": "integer" },
+          "reimbursedBaseMinor": { "type": ["integer", "null"] },
+          "fxVarianceMinor": { "type": "integer" },
+          "payoutTransferId": { "type": ["integer", "null"] },
+          "payoutEntryId": { "type": ["integer", "null"] },
+          "externalRef": { "type": ["string", "null"], "maxLength": 120 },
+          "submittedOn": { "type": ["string", "null"] },
+          "paidOn": { "type": ["string", "null"] },
+          "notes": { "type": ["string", "null"] },
+          "createdAt": { "type": ["string", "integer"] },
+          "_rev": {
+            "type": "string",
+            "description": "The `_rev` of your read: the write is refused with `409 stale_revision` if the row changed since."
+          }
+        }
+      },
+      "ReimbursementClaimFilter": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/IntegerFilter" },
+          "title": { "$ref": "#/components/schemas/StringFilter" },
+          "payerKind": { "$ref": "#/components/schemas/StringFilter" },
+          "businessEntityId": { "$ref": "#/components/schemas/IntegerFilter" },
+          "counterpartyPayeeId": { "$ref": "#/components/schemas/IntegerFilter" },
+          "reimburseToAccountId": { "$ref": "#/components/schemas/IntegerFilter" },
+          "claimState": { "$ref": "#/components/schemas/StringFilter" },
+          "currency": { "$ref": "#/components/schemas/StringFilter" },
+          "totalMinor": { "$ref": "#/components/schemas/IntegerFilter" },
+          "reimbursedBaseMinor": { "$ref": "#/components/schemas/IntegerFilter" },
+          "fxVarianceMinor": { "$ref": "#/components/schemas/IntegerFilter" },
+          "payoutTransferId": { "$ref": "#/components/schemas/IntegerFilter" },
+          "payoutEntryId": { "$ref": "#/components/schemas/IntegerFilter" },
+          "externalRef": { "$ref": "#/components/schemas/StringFilter" },
+          "submittedOn": { "$ref": "#/components/schemas/StringFilter" },
+          "paidOn": { "$ref": "#/components/schemas/StringFilter" },
+          "notes": { "$ref": "#/components/schemas/StringFilter" },
+          "createdAt": { "$ref": "#/components/schemas/StringFilter" },
+          "author": { "$ref": "#/components/schemas/IntegerFilter" },
+          "updatedAt": { "$ref": "#/components/schemas/StringFilter" },
+          "deletedAt": { "$ref": "#/components/schemas/StringFilter" },
+          "deletedBy": { "$ref": "#/components/schemas/IntegerFilter" },
+          "lines": { "type": "object", "description": "A filter on the related rows." },
+          "AND": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementClaimFilter" }
+          },
+          "OR": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementClaimFilter" }
+          },
+          "NOT": { "$ref": "#/components/schemas/ReimbursementClaimFilter" }
+        }
+      },
+      "ReimbursementLine": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "claimId": {
+            "anyOf": [
+              { "type": ["integer", "string", "object"] },
+              {
+                "anyOf": [
+                  { "$ref": "#/components/schemas/ReimbursementClaim" },
+                  { "type": "null" }
+                ]
+              }
+            ]
+          },
+          "sourceEntryId": {
+            "anyOf": [
+              { "type": ["integer", "string", "object"] },
+              {
+                "anyOf": [
+                  { "$ref": "#/components/schemas/Entry" },
+                  { "type": "null" }
+                ]
+              }
+            ]
+          },
+          "businessCategoryId": {
+            "anyOf": [
+              { "type": ["integer", "string", "object", "null"] },
+              {
+                "anyOf": [
+                  { "$ref": "#/components/schemas/Category" },
+                  { "type": "null" }
+                ]
+              }
+            ]
+          },
+          "splitBps": { "type": "integer", "minimum": 1, "maximum": 10000 },
+          "reimbursableMinor": { "type": "integer" },
+          "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
+          "baseMinor": { "type": "integer" },
+          "receiptFileId": { "type": ["integer", "object", "null"] },
+          "notes": { "type": ["string", "null"] },
+          "author": { "type": ["integer", "null"] },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "deletedAt": { "type": ["string", "null"], "format": "date-time" },
+          "deletedBy": { "type": ["integer", "null"] },
+          "_rev": {
+            "type": "string",
+            "description": "A token of the row as read: send it back with a write to refuse the write if the row changed since."
+          }
+        }
+      },
+      "ReimbursementLineInsert": {
+        "type": "object",
+        "properties": {
+          "claimId": { "type": "integer" },
+          "sourceEntryId": { "type": "integer" },
+          "businessCategoryId": { "type": ["integer", "null"] },
+          "splitBps": { "type": "integer", "minimum": 1, "maximum": 10000 },
+          "reimbursableMinor": { "type": "integer" },
+          "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
+          "baseMinor": { "type": "integer" },
+          "receiptFileId": { "type": ["integer", "null"] },
+          "notes": { "type": ["string", "null"] }
+        },
+        "required": ["claimId", "sourceEntryId", "reimbursableMinor", "baseMinor"]
+      },
+      "ReimbursementLinePatch": {
+        "type": "object",
+        "properties": {
+          "claimId": { "type": "integer" },
+          "sourceEntryId": { "type": "integer" },
+          "businessCategoryId": { "type": ["integer", "null"] },
+          "splitBps": { "type": "integer", "minimum": 1, "maximum": 10000 },
+          "reimbursableMinor": { "type": "integer" },
+          "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
+          "baseMinor": { "type": "integer" },
+          "receiptFileId": { "type": ["integer", "null"] },
+          "notes": { "type": ["string", "null"] },
+          "_rev": {
+            "type": "string",
+            "description": "The `_rev` of your read: the write is refused with `409 stale_revision` if the row changed since."
+          }
+        }
+      },
+      "ReimbursementLineFilter": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/IntegerFilter" },
+          "claimId": { "$ref": "#/components/schemas/IntegerFilter" },
+          "sourceEntryId": { "$ref": "#/components/schemas/IntegerFilter" },
+          "businessCategoryId": { "$ref": "#/components/schemas/IntegerFilter" },
+          "splitBps": { "$ref": "#/components/schemas/IntegerFilter" },
+          "reimbursableMinor": { "$ref": "#/components/schemas/IntegerFilter" },
+          "currency": { "$ref": "#/components/schemas/StringFilter" },
+          "baseMinor": { "$ref": "#/components/schemas/IntegerFilter" },
+          "receiptFileId": { "$ref": "#/components/schemas/IntegerFilter" },
+          "notes": { "$ref": "#/components/schemas/StringFilter" },
+          "author": { "$ref": "#/components/schemas/IntegerFilter" },
+          "createdAt": { "$ref": "#/components/schemas/StringFilter" },
+          "updatedAt": { "$ref": "#/components/schemas/StringFilter" },
+          "deletedAt": { "$ref": "#/components/schemas/StringFilter" },
+          "deletedBy": { "$ref": "#/components/schemas/IntegerFilter" },
+          "AND": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementLineFilter" }
+          },
+          "OR": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReimbursementLineFilter" }
+          },
+          "NOT": { "$ref": "#/components/schemas/ReimbursementLineFilter" }
         }
       },
       "Grant": {
@@ -21495,6 +23054,7 @@
           "workspaceName": { "type": "string" },
           "baseCurrency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
           "fiscalYearStartMonth": { "type": "integer", "minimum": 1, "maximum": 12 },
+          "aiProvider": { "type": "string", "enum": ["gemini", "anthropic", "openai"] },
           "aiModel": { "type": "string" },
           "autoApproveConfidenceBps": { "type": "integer", "minimum": 5000, "maximum": 10000 },
           "accountantNote": { "type": ["string", "null"] }
@@ -21506,6 +23066,7 @@
           "workspaceName": { "type": "string" },
           "baseCurrency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
           "fiscalYearStartMonth": { "type": "integer", "minimum": 1, "maximum": 12 },
+          "aiProvider": { "type": "string", "enum": ["gemini", "anthropic", "openai"] },
           "aiModel": { "type": "string" },
           "autoApproveConfidenceBps": { "type": "integer", "minimum": 5000, "maximum": 10000 },
           "accountantNote": { "type": ["string", "null"] }

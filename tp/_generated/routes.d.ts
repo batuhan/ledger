@@ -15,6 +15,7 @@ declare module "typedpress/app" {
     "invite/[token]": { path: `/invite/${string}`; params: { token: string } };
     "memos/[slug]": { path: `/memos/${string}`; params: { slug: string }; item: import("typedpress").RegisteredKinds extends { financeMemos: { $inferSelect: infer R } } ? R : Record<string, unknown> };
     "recurring/[slug]": { path: `/recurring/${string}`; params: { slug: string }; item: import("typedpress").RegisteredKinds extends { recurringItems: { $inferSelect: infer R } } ? R : Record<string, unknown> };
+    "reimbursements/[id]": { path: `/reimbursements/${string}`; params: { id: string } };
     "share/[token]": { path: `/share/${string}`; params: { token: string } };
     "accounts": { path: `/accounts`; params: {  } };
     "cards": { path: `/cards`; params: {  } };
@@ -26,6 +27,7 @@ declare module "typedpress/app" {
     "investments": { path: `/investments`; params: {  } };
     "memos": { path: `/memos`; params: {  } };
     "recurring": { path: `/recurring`; params: {  } };
+    "reimbursements": { path: `/reimbursements`; params: {  } };
     "sharing": { path: `/sharing`; params: {  } };
     "transfers": { path: `/transfers`; params: {  } };
     "/": { path: `/`; params: {  } };

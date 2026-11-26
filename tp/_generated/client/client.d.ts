@@ -182,6 +182,13 @@ export interface LegalEntityWith {
 		offset?: number;
 		with?: IngestProposalWith;
 	};
+	reimbursementClaims?: true | {
+		where?: ReimbursementClaimFilter;
+		orderBy?: ReimbursementClaimOrder;
+		limit?: number;
+		offset?: number;
+		with?: ReimbursementClaimWith;
+	};
 	grants?: true | {
 		where?: GrantFilter;
 		orderBy?: GrantOrder;
@@ -444,6 +451,7 @@ export interface LegalEntityFilter {
 	trades?: true | TradeFilter;
 	valuations?: true | ValuationFilter;
 	ingestProposals?: true | IngestProposalFilter;
+	reimbursementClaims?: true | ReimbursementClaimFilter;
 	grants?: true | GrantFilter;
 	invitations?: true | InvitationFilter;
 	shareLinks?: true | ShareLinkFilter;
@@ -834,6 +842,13 @@ export interface AccountWith {
 		offset?: number;
 		with?: IngestProposalWith;
 	};
+	reimbursementClaims?: true | {
+		where?: ReimbursementClaimFilter;
+		orderBy?: ReimbursementClaimOrder;
+		limit?: number;
+		offset?: number;
+		with?: ReimbursementClaimWith;
+	};
 	grants?: true | {
 		where?: GrantFilter;
 		orderBy?: GrantOrder;
@@ -1162,6 +1177,7 @@ export interface AccountFilter {
 	trades?: true | TradeFilter;
 	valuations?: true | ValuationFilter;
 	ingestProposals?: true | IngestProposalFilter;
+	reimbursementClaims?: true | ReimbursementClaimFilter;
 	grants?: true | GrantFilter;
 	shareLinks?: true | ShareLinkFilter;
 	AND?: AccountFilter[];
@@ -1638,6 +1654,13 @@ export interface CategoryWith {
 		offset?: number;
 		with?: IngestProposalWith;
 	};
+	reimbursementLines?: true | {
+		where?: ReimbursementLineFilter;
+		orderBy?: ReimbursementLineOrder;
+		limit?: number;
+		offset?: number;
+		with?: ReimbursementLineWith;
+	};
 }
 export interface CategoryFilter {
 	id?: number | null | {
@@ -1909,6 +1932,7 @@ export interface CategoryFilter {
 	installmentPlans?: true | InstallmentPlanFilter;
 	entries?: true | EntryFilter;
 	ingestProposals?: true | IngestProposalFilter;
+	reimbursementLines?: true | ReimbursementLineFilter;
 	AND?: CategoryFilter[];
 	OR?: CategoryFilter[];
 	NOT?: CategoryFilter;
@@ -1971,6 +1995,13 @@ export interface PayeeWith {
 		limit?: number;
 		offset?: number;
 		with?: EntryWith;
+	};
+	reimbursementClaims?: true | {
+		where?: ReimbursementClaimFilter;
+		orderBy?: ReimbursementClaimOrder;
+		limit?: number;
+		offset?: number;
+		with?: ReimbursementClaimWith;
 	};
 }
 export interface PayeeFilter {
@@ -2168,6 +2199,7 @@ export interface PayeeFilter {
 	};
 	recurringItems?: true | RecurringItemFilter;
 	entries?: true | EntryFilter;
+	reimbursementClaims?: true | ReimbursementClaimFilter;
 	AND?: PayeeFilter[];
 	OR?: PayeeFilter[];
 	NOT?: PayeeFilter;
@@ -3530,6 +3562,13 @@ export interface TransferWith {
 		offset?: number;
 		with?: EntryWith;
 	};
+	reimbursementClaims?: true | {
+		where?: ReimbursementClaimFilter;
+		orderBy?: ReimbursementClaimOrder;
+		limit?: number;
+		offset?: number;
+		with?: ReimbursementClaimWith;
+	};
 }
 export interface TransferFilter {
 	id?: number | null | {
@@ -3769,6 +3808,7 @@ export interface TransferFilter {
 		isNotNull?: true;
 	};
 	entries?: true | EntryFilter;
+	reimbursementClaims?: true | ReimbursementClaimFilter;
 	AND?: TransferFilter[];
 	OR?: TransferFilter[];
 	NOT?: TransferFilter;
@@ -4130,7 +4170,7 @@ export interface Entry {
 	currency: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
 	baseAmountMinor: number;
 	fxRateMicros: number;
-	entryKind: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
+	entryKind: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
 	isPending: boolean;
 	reviewStatus: "unreviewed" | "reviewed" | "flagged";
 	isSplitParent: boolean;
@@ -4163,7 +4203,7 @@ export interface EntryInsert {
 	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
 	baseAmountMinor: number;
 	fxRateMicros?: number;
-	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
+	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
 	isPending?: boolean;
 	reviewStatus?: "unreviewed" | "reviewed" | "flagged";
 	isSplitParent?: boolean;
@@ -4192,7 +4232,7 @@ export interface EntryPatch {
 	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
 	baseAmountMinor?: number;
 	fxRateMicros?: number;
-	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
+	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
 	isPending?: boolean;
 	reviewStatus?: "unreviewed" | "reviewed" | "flagged";
 	isSplitParent?: boolean;
@@ -4254,6 +4294,20 @@ export interface EntryWith {
 		limit?: number;
 		offset?: number;
 		with?: InstallmentPlanWith;
+	};
+	reimbursementClaims?: true | {
+		where?: ReimbursementClaimFilter;
+		orderBy?: ReimbursementClaimOrder;
+		limit?: number;
+		offset?: number;
+		with?: ReimbursementClaimWith;
+	};
+	reimbursementLines?: true | {
+		where?: ReimbursementLineFilter;
+		orderBy?: ReimbursementLineOrder;
+		limit?: number;
+		offset?: number;
+		with?: ReimbursementLineWith;
 	};
 	receiptFileId?: true;
 }
@@ -4462,15 +4516,15 @@ export interface EntryFilter {
 		isNull?: true;
 		isNotNull?: true;
 	};
-	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment" | null | {
-		eq?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment" | null;
-		ne?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment" | null;
-		gt?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
-		gte?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
-		lt?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
-		lte?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
-		in?: ("expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment")[];
-		notIn?: ("expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment")[];
+	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment" | null | {
+		eq?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment" | null;
+		ne?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment" | null;
+		gt?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
+		gte?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
+		lt?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
+		lte?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
+		in?: ("expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment")[];
+		notIn?: ("expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment")[];
 		like?: string;
 		ilike?: string;
 		notLike?: string;
@@ -4664,6 +4718,8 @@ export interface EntryFilter {
 		isNull?: true;
 		isNotNull?: true;
 	};
+	reimbursementClaims?: true | ReimbursementClaimFilter;
+	reimbursementLines?: true | ReimbursementLineFilter;
 	AND?: EntryFilter[];
 	OR?: EntryFilter[];
 	NOT?: EntryFilter;
@@ -5368,7 +5424,7 @@ export interface IngestProposal {
 	suggestedEntityId: Id<"legalEntities"> | null;
 	suggestedAccountId: Id<"accounts"> | null;
 	suggestedCategoryId: Id<"categories"> | null;
-	entryKind: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
+	entryKind: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
 	installmentCount: number | null;
 	confidenceBps: number;
 	status: "pending" | "approved" | "rejected" | "applied";
@@ -5391,7 +5447,7 @@ export interface IngestProposalInsert {
 	suggestedEntityId?: Id<"legalEntities"> | null;
 	suggestedAccountId?: Id<"accounts"> | null;
 	suggestedCategoryId?: Id<"categories"> | null;
-	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
+	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
 	installmentCount?: number | null;
 	confidenceBps?: number;
 	status?: "pending" | "approved" | "rejected" | "applied";
@@ -5409,7 +5465,7 @@ export interface IngestProposalPatch {
 	suggestedEntityId?: number | null;
 	suggestedAccountId?: number | null;
 	suggestedCategoryId?: number | null;
-	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
+	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
 	installmentCount?: number | null;
 	confidenceBps?: number;
 	status?: "pending" | "approved" | "rejected" | "applied";
@@ -5595,15 +5651,15 @@ export interface IngestProposalFilter {
 		isNull?: true;
 		isNotNull?: true;
 	} | CategoryFilter;
-	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment" | null | {
-		eq?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment" | null;
-		ne?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment" | null;
-		gt?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
-		gte?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
-		lt?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
-		lte?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
-		in?: ("expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment")[];
-		notIn?: ("expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment")[];
+	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment" | null | {
+		eq?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment" | null;
+		ne?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment" | null;
+		gt?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
+		gte?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
+		lt?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
+		lte?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
+		in?: ("expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment")[];
+		notIn?: ("expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment")[];
 		like?: string;
 		ilike?: string;
 		notLike?: string;
@@ -5744,6 +5800,664 @@ export interface IngestProposalFilter {
 	NOT?: IngestProposalFilter;
 }
 export type IngestProposalOrder = Partial<Record<"id" | "ingestItemId" | "targetKind" | "postedOn" | "description" | "merchantRaw" | "amountMinor" | "currency" | "suggestedEntityId" | "suggestedAccountId" | "suggestedCategoryId" | "entryKind" | "installmentCount" | "confidenceBps" | "status" | "appliedEntryId" | "rawJson" | "author" | "createdAt" | "updatedAt" | "deletedAt" | "deletedBy", "asc" | "desc">> | string;
+export interface ReimbursementClaim {
+	id: Id<"reimbursementClaims">;
+	title: string;
+	payerKind: "internal_entity" | "external_counterparty";
+	businessEntityId: Id<"legalEntities"> | null;
+	counterpartyPayeeId: Id<"payees"> | null;
+	reimburseToAccountId: Id<"accounts"> | null;
+	claimState: "draft" | "submitted" | "approved" | "paid" | "rejected";
+	currency: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+	totalMinor: number;
+	reimbursedBaseMinor: number | null;
+	fxVarianceMinor: number;
+	payoutTransferId: Id<"transfers"> | null;
+	payoutEntryId: Id<"entries"> | null;
+	externalRef: string | null;
+	submittedOn: string | null;
+	paidOn: string | null;
+	notes: string | null;
+	createdAt: string;
+	author: number | null;
+	updatedAt: string;
+	deletedAt: string | null;
+	deletedBy: number | null;
+}
+export interface ReimbursementClaimInsert {
+	title: string;
+	payerKind?: "internal_entity" | "external_counterparty";
+	businessEntityId?: Id<"legalEntities"> | null;
+	counterpartyPayeeId?: Id<"payees"> | null;
+	reimburseToAccountId?: Id<"accounts"> | null;
+	claimState?: "draft" | "submitted" | "approved" | "paid" | "rejected";
+	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+	totalMinor?: number;
+	reimbursedBaseMinor?: number | null;
+	fxVarianceMinor?: number;
+	payoutTransferId?: Id<"transfers"> | null;
+	payoutEntryId?: Id<"entries"> | null;
+	externalRef?: string | null;
+	submittedOn?: string | null;
+	paidOn?: string | null;
+	notes?: string | null;
+	createdAt?: string;
+}
+export interface ReimbursementClaimPatch {
+	title?: string;
+	payerKind?: "internal_entity" | "external_counterparty";
+	businessEntityId?: number | null;
+	counterpartyPayeeId?: number | null;
+	reimburseToAccountId?: number | null;
+	claimState?: "draft" | "submitted" | "approved" | "paid" | "rejected";
+	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+	totalMinor?: number;
+	reimbursedBaseMinor?: number | null;
+	fxVarianceMinor?: number;
+	payoutTransferId?: number | null;
+	payoutEntryId?: number | null;
+	externalRef?: string | null;
+	submittedOn?: string | null;
+	paidOn?: string | null;
+	notes?: string | null;
+	createdAt?: string;
+}
+export interface ReimbursementClaimWith {
+	businessEntityId?: true | {
+		where?: LegalEntityFilter;
+		orderBy?: LegalEntityOrder;
+		limit?: number;
+		offset?: number;
+		with?: LegalEntityWith;
+	};
+	counterpartyPayeeId?: true | {
+		where?: PayeeFilter;
+		orderBy?: PayeeOrder;
+		limit?: number;
+		offset?: number;
+		with?: PayeeWith;
+	};
+	reimburseToAccountId?: true | {
+		where?: AccountFilter;
+		orderBy?: AccountOrder;
+		limit?: number;
+		offset?: number;
+		with?: AccountWith;
+	};
+	payoutTransferId?: true | {
+		where?: TransferFilter;
+		orderBy?: TransferOrder;
+		limit?: number;
+		offset?: number;
+		with?: TransferWith;
+	};
+	payoutEntryId?: true | {
+		where?: EntryFilter;
+		orderBy?: EntryOrder;
+		limit?: number;
+		offset?: number;
+		with?: EntryWith;
+	};
+	lines?: true | {
+		where?: ReimbursementLineFilter;
+		orderBy?: ReimbursementLineOrder;
+		limit?: number;
+		offset?: number;
+		with?: ReimbursementLineWith;
+	};
+}
+export interface ReimbursementClaimFilter {
+	id?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	title?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		like?: string;
+		ilike?: string;
+		notLike?: string;
+		notIlike?: string;
+		isNull?: true;
+		isNotNull?: true;
+	};
+	payerKind?: "internal_entity" | "external_counterparty" | null | {
+		eq?: "internal_entity" | "external_counterparty" | null;
+		ne?: "internal_entity" | "external_counterparty" | null;
+		gt?: "internal_entity" | "external_counterparty";
+		gte?: "internal_entity" | "external_counterparty";
+		lt?: "internal_entity" | "external_counterparty";
+		lte?: "internal_entity" | "external_counterparty";
+		in?: ("internal_entity" | "external_counterparty")[];
+		notIn?: ("internal_entity" | "external_counterparty")[];
+		like?: string;
+		ilike?: string;
+		notLike?: string;
+		notIlike?: string;
+		isNull?: true;
+		isNotNull?: true;
+	};
+	businessEntityId?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	} | LegalEntityFilter;
+	counterpartyPayeeId?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	} | PayeeFilter;
+	reimburseToAccountId?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	} | AccountFilter;
+	claimState?: "draft" | "submitted" | "approved" | "paid" | "rejected" | null | {
+		eq?: "draft" | "submitted" | "approved" | "paid" | "rejected" | null;
+		ne?: "draft" | "submitted" | "approved" | "paid" | "rejected" | null;
+		gt?: "draft" | "submitted" | "approved" | "paid" | "rejected";
+		gte?: "draft" | "submitted" | "approved" | "paid" | "rejected";
+		lt?: "draft" | "submitted" | "approved" | "paid" | "rejected";
+		lte?: "draft" | "submitted" | "approved" | "paid" | "rejected";
+		in?: ("draft" | "submitted" | "approved" | "paid" | "rejected")[];
+		notIn?: ("draft" | "submitted" | "approved" | "paid" | "rejected")[];
+		like?: string;
+		ilike?: string;
+		notLike?: string;
+		notIlike?: string;
+		isNull?: true;
+		isNotNull?: true;
+	};
+	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF" | null | {
+		eq?: "EUR" | "TRY" | "USD" | "GBP" | "CHF" | null;
+		ne?: "EUR" | "TRY" | "USD" | "GBP" | "CHF" | null;
+		gt?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+		gte?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+		lt?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+		lte?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+		in?: ("EUR" | "TRY" | "USD" | "GBP" | "CHF")[];
+		notIn?: ("EUR" | "TRY" | "USD" | "GBP" | "CHF")[];
+		like?: string;
+		ilike?: string;
+		notLike?: string;
+		notIlike?: string;
+		isNull?: true;
+		isNotNull?: true;
+	};
+	totalMinor?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	reimbursedBaseMinor?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	fxVarianceMinor?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	payoutTransferId?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	} | TransferFilter;
+	payoutEntryId?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	} | EntryFilter;
+	externalRef?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		like?: string;
+		ilike?: string;
+		notLike?: string;
+		notIlike?: string;
+		isNull?: true;
+		isNotNull?: true;
+	};
+	submittedOn?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	paidOn?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	notes?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		like?: string;
+		ilike?: string;
+		notLike?: string;
+		notIlike?: string;
+		isNull?: true;
+		isNotNull?: true;
+	};
+	createdAt?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	author?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	updatedAt?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	deletedAt?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	deletedBy?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	lines?: true | ReimbursementLineFilter;
+	AND?: ReimbursementClaimFilter[];
+	OR?: ReimbursementClaimFilter[];
+	NOT?: ReimbursementClaimFilter;
+}
+export type ReimbursementClaimOrder = Partial<Record<"id" | "title" | "payerKind" | "businessEntityId" | "counterpartyPayeeId" | "reimburseToAccountId" | "claimState" | "currency" | "totalMinor" | "reimbursedBaseMinor" | "fxVarianceMinor" | "payoutTransferId" | "payoutEntryId" | "externalRef" | "submittedOn" | "paidOn" | "notes" | "createdAt" | "author" | "updatedAt" | "deletedAt" | "deletedBy", "asc" | "desc">> | string;
+export interface ReimbursementLine {
+	id: Id<"reimbursementLines">;
+	claimId: Id<"reimbursementClaims">;
+	sourceEntryId: Id<"entries">;
+	businessCategoryId: Id<"categories"> | null;
+	splitBps: number;
+	reimbursableMinor: number;
+	currency: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+	baseMinor: number;
+	receiptFileId: number | null;
+	notes: string | null;
+	author: number | null;
+	createdAt: string;
+	updatedAt: string;
+	deletedAt: string | null;
+	deletedBy: number | null;
+}
+export interface ReimbursementLineInsert {
+	claimId: Id<"reimbursementClaims">;
+	sourceEntryId: Id<"entries">;
+	businessCategoryId?: Id<"categories"> | null;
+	splitBps?: number;
+	reimbursableMinor: number;
+	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+	baseMinor: number;
+	receiptFileId?: number | null;
+	notes?: string | null;
+}
+export interface ReimbursementLinePatch {
+	claimId?: number;
+	sourceEntryId?: number;
+	businessCategoryId?: number | null;
+	splitBps?: number;
+	reimbursableMinor?: number;
+	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+	baseMinor?: number;
+	receiptFileId?: number | null;
+	notes?: string | null;
+}
+export interface ReimbursementLineWith {
+	claimId?: true | {
+		where?: ReimbursementClaimFilter;
+		orderBy?: ReimbursementClaimOrder;
+		limit?: number;
+		offset?: number;
+		with?: ReimbursementClaimWith;
+	};
+	sourceEntryId?: true | {
+		where?: EntryFilter;
+		orderBy?: EntryOrder;
+		limit?: number;
+		offset?: number;
+		with?: EntryWith;
+	};
+	businessCategoryId?: true | {
+		where?: CategoryFilter;
+		orderBy?: CategoryOrder;
+		limit?: number;
+		offset?: number;
+		with?: CategoryWith;
+	};
+	receiptFileId?: true;
+}
+export interface ReimbursementLineFilter {
+	id?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	claimId?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	} | ReimbursementClaimFilter;
+	sourceEntryId?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	} | EntryFilter;
+	businessCategoryId?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	} | CategoryFilter;
+	splitBps?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	reimbursableMinor?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF" | null | {
+		eq?: "EUR" | "TRY" | "USD" | "GBP" | "CHF" | null;
+		ne?: "EUR" | "TRY" | "USD" | "GBP" | "CHF" | null;
+		gt?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+		gte?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+		lt?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+		lte?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+		in?: ("EUR" | "TRY" | "USD" | "GBP" | "CHF")[];
+		notIn?: ("EUR" | "TRY" | "USD" | "GBP" | "CHF")[];
+		like?: string;
+		ilike?: string;
+		notLike?: string;
+		notIlike?: string;
+		isNull?: true;
+		isNotNull?: true;
+	};
+	baseMinor?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	receiptFileId?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	notes?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		like?: string;
+		ilike?: string;
+		notLike?: string;
+		notIlike?: string;
+		isNull?: true;
+		isNotNull?: true;
+	};
+	author?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	createdAt?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	updatedAt?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	deletedAt?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	deletedBy?: number | null | {
+		eq?: number | null;
+		ne?: number | null;
+		gt?: number;
+		gte?: number;
+		lt?: number;
+		lte?: number;
+		in?: number[];
+		notIn?: number[];
+		isNull?: true;
+		isNotNull?: true;
+	};
+	AND?: ReimbursementLineFilter[];
+	OR?: ReimbursementLineFilter[];
+	NOT?: ReimbursementLineFilter;
+}
+export type ReimbursementLineOrder = Partial<Record<"id" | "claimId" | "sourceEntryId" | "businessCategoryId" | "splitBps" | "reimbursableMinor" | "currency" | "baseMinor" | "receiptFileId" | "notes" | "author" | "createdAt" | "updatedAt" | "deletedAt" | "deletedBy", "asc" | "desc">> | string;
 export interface Grant {
 	id: Id<"grants">;
 	userId: number;
@@ -6677,6 +7391,7 @@ export interface FinanceSettings {
 	workspaceName: string;
 	baseCurrency: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
 	fiscalYearStartMonth: number;
+	aiProvider: "gemini" | "anthropic" | "openai";
 	aiModel: string;
 	autoApproveConfidenceBps: number;
 	accountantNote: string | null;
@@ -6685,6 +7400,7 @@ export interface FinanceSettingsPatch {
 	workspaceName?: string;
 	baseCurrency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
 	fiscalYearStartMonth?: number;
+	aiProvider?: "gemini" | "anthropic" | "openai";
 	aiModel?: string;
 	autoApproveConfidenceBps?: number;
 	accountantNote?: string | null;
@@ -6729,7 +7445,7 @@ export interface RecordEntryInput {
 	postedOn: string;
 	description: string;
 	amount: string;
-	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
+	entryKind?: "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "reimbursement" | "fee" | "tax" | "investment";
 	isPending?: string | boolean;
 	notes?: string;
 }
@@ -6762,6 +7478,58 @@ export type SetReviewStatusOutput = {
 	reviewStatus: "unreviewed" | "reviewed" | "flagged";
 	excludeFromBudget: boolean;
 	excludeFromTotals: boolean;
+};
+export interface CreateReimbursementClaimInput {
+	title: string;
+	payerKind?: "internal_entity" | "external_counterparty";
+	businessEntityId?: string | number;
+	counterpartyPayeeId?: string | number;
+	newCounterpartyName?: string;
+	reimburseToAccountId?: string | number;
+	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+	externalRef?: string;
+	notes?: string;
+}
+export type CreateReimbursementClaimOutput = {
+	id: number;
+	payerKind: "internal_entity" | "external_counterparty";
+};
+export interface AddReimbursementLineInput {
+	claimId: string | number;
+	sourceEntryId: string | number;
+	splitPercent?: string | number;
+	businessCategoryId?: string | number;
+	notes?: string;
+}
+export type AddReimbursementLineOutput = {
+	id: number;
+	claimId: number;
+	totalMinor: number;
+};
+export interface UpdateReimbursementStateInput {
+	claimId: number;
+	claimState: "draft" | "submitted" | "approved" | "rejected";
+}
+export type UpdateReimbursementStateOutput = {
+	id: number;
+	claimState: "draft" | "submitted" | "approved" | "rejected";
+};
+export interface SettleReimbursementClaimInput {
+	claimId: string | number;
+	paidOn?: string;
+	fromBusinessAccountId?: string | number;
+	toAccountId?: string | number;
+	payoutAmount?: string;
+	existingPayoutEntryId?: string | number;
+	reference?: string;
+}
+export type SettleReimbursementClaimOutput = {
+	id: number;
+	claimState: string;
+	payoutTransferId: number | null;
+	payoutEntryId: number | null;
+	reimbursedBaseMinor: number;
+	fxVarianceMinor: number;
 };
 export interface CreateShareLinkInput {
 	label: string;
@@ -6809,6 +7577,8 @@ export type DashboardSummaryInput = Record<string, never>;
 export type DashboardSummaryOutput = {
 	baseCurrency: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
 	netWorthBaseMinor: number;
+	receivablesBaseMinor: number;
+	openClaimsCount: number;
 	accountCount: number;
 	unreviewedCount: number;
 };
@@ -6957,6 +7727,22 @@ export interface Collections {
 		filter: IngestProposalFilter;
 		order: IngestProposalOrder;
 	};
+	reimbursementClaims: {
+		row: ReimbursementClaim;
+		insert: ReimbursementClaimInsert;
+		patch: ReimbursementClaimPatch;
+		with: ReimbursementClaimWith;
+		filter: ReimbursementClaimFilter;
+		order: ReimbursementClaimOrder;
+	};
+	reimbursementLines: {
+		row: ReimbursementLine;
+		insert: ReimbursementLineInsert;
+		patch: ReimbursementLinePatch;
+		with: ReimbursementLineWith;
+		filter: ReimbursementLineFilter;
+		order: ReimbursementLineOrder;
+	};
 	grants: {
 		row: Grant;
 		insert: GrantInsert;
@@ -7025,6 +7811,22 @@ export interface Actions {
 		input: SetReviewStatusInput;
 		output: SetReviewStatusOutput;
 	};
+	createReimbursementClaim: {
+		input: CreateReimbursementClaimInput;
+		output: CreateReimbursementClaimOutput;
+	};
+	addReimbursementLine: {
+		input: AddReimbursementLineInput;
+		output: AddReimbursementLineOutput;
+	};
+	updateReimbursementState: {
+		input: UpdateReimbursementStateInput;
+		output: UpdateReimbursementStateOutput;
+	};
+	settleReimbursementClaim: {
+		input: SettleReimbursementClaimInput;
+		output: SettleReimbursementClaimOutput;
+	};
 	createShareLink: {
 		input: CreateShareLinkInput;
 		output: CreateShareLinkOutput;
@@ -7079,6 +7881,18 @@ export declare const SCHEMA: {
 			};
 			readonly setReviewStatus: {
 				readonly ability: "set-review-status";
+			};
+			readonly createReimbursementClaim: {
+				readonly ability: "create-reimbursement-claim";
+			};
+			readonly addReimbursementLine: {
+				readonly ability: "add-reimbursement-line";
+			};
+			readonly updateReimbursementState: {
+				readonly ability: "update-reimbursement-state";
+			};
+			readonly settleReimbursementClaim: {
+				readonly ability: "settle-reimbursement-claim";
 			};
 			readonly createShareLink: {
 				readonly ability: "create-share-link";
@@ -7170,6 +7984,11 @@ export declare const SCHEMA: {
 				readonly ingestProposals: {
 					readonly kind: "many";
 					readonly collection: "ingestProposals";
+					readonly optional: false;
+				};
+				readonly reimbursementClaims: {
+					readonly kind: "many";
+					readonly collection: "reimbursementClaims";
 					readonly optional: false;
 				};
 				readonly grants: {
@@ -7270,6 +8089,11 @@ export declare const SCHEMA: {
 					readonly collection: "ingestProposals";
 					readonly optional: false;
 				};
+				readonly reimbursementClaims: {
+					readonly kind: "many";
+					readonly collection: "reimbursementClaims";
+					readonly optional: false;
+				};
 				readonly grants: {
 					readonly kind: "many";
 					readonly collection: "grants";
@@ -7358,6 +8182,11 @@ export declare const SCHEMA: {
 					readonly collection: "ingestProposals";
 					readonly optional: false;
 				};
+				readonly reimbursementLines: {
+					readonly kind: "many";
+					readonly collection: "reimbursementLines";
+					readonly optional: false;
+				};
 			};
 			readonly media: readonly [];
 			readonly mediaList: readonly [];
@@ -7385,6 +8214,11 @@ export declare const SCHEMA: {
 				readonly entries: {
 					readonly kind: "many";
 					readonly collection: "entries";
+					readonly optional: false;
+				};
+				readonly reimbursementClaims: {
+					readonly kind: "many";
+					readonly collection: "reimbursementClaims";
 					readonly optional: false;
 				};
 			};
@@ -7522,6 +8356,11 @@ export declare const SCHEMA: {
 					readonly collection: "entries";
 					readonly optional: false;
 				};
+				readonly reimbursementClaims: {
+					readonly kind: "many";
+					readonly collection: "reimbursementClaims";
+					readonly optional: false;
+				};
 			};
 			readonly media: readonly [];
 			readonly mediaList: readonly [];
@@ -7609,6 +8448,16 @@ export declare const SCHEMA: {
 					readonly kind: "one";
 					readonly collection: "installmentPlans";
 					readonly optional: true;
+				};
+				readonly reimbursementClaims: {
+					readonly kind: "many";
+					readonly collection: "reimbursementClaims";
+					readonly optional: false;
+				};
+				readonly reimbursementLines: {
+					readonly kind: "many";
+					readonly collection: "reimbursementLines";
+					readonly optional: false;
 				};
 			};
 			readonly media: readonly [];
@@ -7716,6 +8565,79 @@ export declare const SCHEMA: {
 			readonly files: readonly [];
 			readonly ability: "ingest-proposals";
 		};
+		readonly reimbursementClaims: {
+			readonly path: "reimbursement_claims";
+			readonly primaryKey: "id";
+			readonly drafts: false;
+			readonly revisions: true;
+			readonly softDelete: true;
+			readonly localized: false;
+			readonly relations: {
+				readonly businessEntityId: {
+					readonly kind: "one";
+					readonly collection: "legalEntities";
+					readonly optional: true;
+				};
+				readonly counterpartyPayeeId: {
+					readonly kind: "one";
+					readonly collection: "payees";
+					readonly optional: true;
+				};
+				readonly reimburseToAccountId: {
+					readonly kind: "one";
+					readonly collection: "accounts";
+					readonly optional: true;
+				};
+				readonly payoutTransferId: {
+					readonly kind: "one";
+					readonly collection: "transfers";
+					readonly optional: true;
+				};
+				readonly payoutEntryId: {
+					readonly kind: "one";
+					readonly collection: "entries";
+					readonly optional: true;
+				};
+				readonly lines: {
+					readonly kind: "many";
+					readonly collection: "reimbursementLines";
+					readonly optional: false;
+				};
+			};
+			readonly media: readonly [];
+			readonly mediaList: readonly [];
+			readonly files: readonly [];
+			readonly ability: "reimbursement-claims";
+		};
+		readonly reimbursementLines: {
+			readonly path: "reimbursement_lines";
+			readonly primaryKey: "id";
+			readonly drafts: false;
+			readonly revisions: true;
+			readonly softDelete: true;
+			readonly localized: false;
+			readonly relations: {
+				readonly claimId: {
+					readonly kind: "one";
+					readonly collection: "reimbursementClaims";
+					readonly optional: false;
+				};
+				readonly sourceEntryId: {
+					readonly kind: "one";
+					readonly collection: "entries";
+					readonly optional: false;
+				};
+				readonly businessCategoryId: {
+					readonly kind: "one";
+					readonly collection: "categories";
+					readonly optional: true;
+				};
+			};
+			readonly media: readonly [];
+			readonly mediaList: readonly [];
+			readonly files: readonly ["receiptFileId"];
+			readonly ability: "reimbursement-lines";
+		};
 		readonly grants: {
 			readonly path: "grants";
 			readonly primaryKey: "id";
@@ -7803,7 +8725,7 @@ export declare const SCHEMA: {
 		};
 	};
 	readonly globals: readonly ["financeSettings"];
-	readonly actions: readonly ["registerUpload", "approveProposal", "rejectProposal", "applyAllProposals", "recordEntry", "recordTransfer", "setReviewStatus", "createShareLink", "revokeShareLink", "createInvitation", "acceptInvitation", "revokeGrant", "dashboardSummary", "seedDemoData"];
+	readonly actions: readonly ["registerUpload", "approveProposal", "rejectProposal", "applyAllProposals", "recordEntry", "recordTransfer", "setReviewStatus", "createReimbursementClaim", "addReimbursementLine", "updateReimbursementState", "settleReimbursementClaim", "createShareLink", "revokeShareLink", "createInvitation", "acceptInvitation", "revokeGrant", "dashboardSummary", "seedDemoData"];
 	readonly buckets: readonly ["inboxFiles"];
 };
 export type SchemaDescriptor = typeof SCHEMA;
