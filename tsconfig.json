@@ -1,22 +1,19 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "typedpress",
+    "jsxImportSource": "spacepress",
+    "rootDirs": [".", "./sp/_generated/types"],
     "types": ["node"],
     "paths": {
-      "typedpress": ["./node_modules/typedpress/types/index.d.ts"],
-      "typedpress/*": ["./node_modules/typedpress/types/*.d.ts"],
-      "typedpress:db": ["./node_modules/typedpress/types/db.d.cts"],
-      "php/wordpress": ["./node_modules/typedpress/types/wordpress.d.ts"]
+      "react": ["./node_modules/spacepress/types/react-shim.d.ts"]
     }
   },
-  "include": ["typedpress.config.ts", "*.client.ts", "tp"],
-  "exclude": ["tp/dist"]
+  "include": ["spacepress.config.ts", "*.client.ts", "sp"],
+  "exclude": ["sp/_generated/client", "sp/dist", "node_modules"]
 }

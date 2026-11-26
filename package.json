@@ -3,17 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "typedpress dev",
-    "build": "typedpress build",
-    "check": "typedpress check",
-    "typecheck": "typedpress build --quiet && tsc --noEmit",
-    "stop": "typedpress dev stop",
-    "status": "typedpress dev status",
-    "wp": "typedpress wp"
+    "dev": "spacepress dev",
+    "build": "spacepress build",
+    "check": "spacepress check",
+    "typecheck": "spacepress build --quiet && tsc --noEmit",
+    "stop": "spacepress dev stop",
+    "status": "spacepress dev status",
+    "wp": "spacepress wp"
   },
   "devDependencies": {
     "@types/node": "22.19.17",
-    "typedpress": "latest",
+    "spacepress": "0.3.0",
     "typescript": "5.9.3"
   }
 }

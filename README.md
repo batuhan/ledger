@@ -1,6 +1,6 @@
 # Ledger
 
-A multi-entity, multi-currency personal & business finance workspace built natively on [SpacePress](https://spacepress.dev) (`tp/app/` server pages + WordPress Interactivity API `"use client"` islands).
+A multi-entity, multi-currency personal & business finance workspace built natively on [SpacePress](https://spacepress.dev) (`sp/app/` server pages + WordPress Interactivity API `"use client"` islands).
 
 ## Features
 
@@ -22,7 +22,7 @@ npm run dev
 To expose on your local network:
 
 ```bash
-npx typedpress dev --host 10.0.0.24
+npx spacepress dev --host 10.0.0.24
 ```
 
 ## AI Extraction Configuration (Optional)
