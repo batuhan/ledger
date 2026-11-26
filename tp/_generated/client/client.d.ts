@@ -2599,7 +2599,9 @@ export interface Security {
 	slug: string | null;
 	ticker: string;
 	isin: string | null;
-	assetClass: "stock" | "etf" | "bond" | "fund" | "money_market";
+	exchange: string | null;
+	unitLabel: string;
+	assetClass: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other";
 	currency: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
 	lastPriceMinor: number;
 	lastPricedOn: string | null;
@@ -2617,7 +2619,9 @@ export interface SecurityInsert {
 	slug?: string | null;
 	ticker: string;
 	isin?: string | null;
-	assetClass?: "stock" | "etf" | "bond" | "fund" | "money_market";
+	exchange?: string | null;
+	unitLabel?: string;
+	assetClass?: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other";
 	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
 	lastPriceMinor?: number;
 	lastPricedOn?: string | null;
@@ -2630,7 +2634,9 @@ export interface SecurityPatch {
 	slug?: string | null;
 	ticker?: string;
 	isin?: string | null;
-	assetClass?: "stock" | "etf" | "bond" | "fund" | "money_market";
+	exchange?: string | null;
+	unitLabel?: string;
+	assetClass?: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other";
 	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
 	lastPriceMinor?: number;
 	lastPricedOn?: string | null;
@@ -2724,15 +2730,47 @@ export interface SecurityFilter {
 		isNull?: true;
 		isNotNull?: true;
 	};
-	assetClass?: "stock" | "etf" | "bond" | "fund" | "money_market" | null | {
-		eq?: "stock" | "etf" | "bond" | "fund" | "money_market" | null;
-		ne?: "stock" | "etf" | "bond" | "fund" | "money_market" | null;
-		gt?: "stock" | "etf" | "bond" | "fund" | "money_market";
-		gte?: "stock" | "etf" | "bond" | "fund" | "money_market";
-		lt?: "stock" | "etf" | "bond" | "fund" | "money_market";
-		lte?: "stock" | "etf" | "bond" | "fund" | "money_market";
-		in?: ("stock" | "etf" | "bond" | "fund" | "money_market")[];
-		notIn?: ("stock" | "etf" | "bond" | "fund" | "money_market")[];
+	exchange?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		like?: string;
+		ilike?: string;
+		notLike?: string;
+		notIlike?: string;
+		isNull?: true;
+		isNotNull?: true;
+	};
+	unitLabel?: string | null | {
+		eq?: string | null;
+		ne?: string | null;
+		gt?: string;
+		gte?: string;
+		lt?: string;
+		lte?: string;
+		in?: string[];
+		notIn?: string[];
+		like?: string;
+		ilike?: string;
+		notLike?: string;
+		notIlike?: string;
+		isNull?: true;
+		isNotNull?: true;
+	};
+	assetClass?: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other" | null | {
+		eq?: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other" | null;
+		ne?: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other" | null;
+		gt?: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other";
+		gte?: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other";
+		lt?: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other";
+		lte?: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other";
+		in?: ("stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other")[];
+		notIn?: ("stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other")[];
 		like?: string;
 		ilike?: string;
 		notLike?: string;
@@ -2889,7 +2927,7 @@ export interface SecurityFilter {
 	OR?: SecurityFilter[];
 	NOT?: SecurityFilter;
 }
-export type SecurityOrder = Partial<Record<"id" | "name" | "slug" | "ticker" | "isin" | "assetClass" | "currency" | "lastPriceMinor" | "lastPricedOn" | "notes" | "status" | "publishedAt" | "author" | "createdAt" | "updatedAt" | "deletedAt" | "deletedBy", "asc" | "desc">> | string;
+export type SecurityOrder = Partial<Record<"id" | "name" | "slug" | "ticker" | "isin" | "exchange" | "unitLabel" | "assetClass" | "currency" | "lastPriceMinor" | "lastPricedOn" | "notes" | "status" | "publishedAt" | "author" | "createdAt" | "updatedAt" | "deletedAt" | "deletedBy", "asc" | "desc">> | string;
 export interface IngestItem {
 	id: Id<"ingestItems">;
 	title: string;
@@ -4730,7 +4768,7 @@ export interface Trade {
 	entityId: Id<"legalEntities">;
 	accountId: Id<"accounts">;
 	securityId: Id<"securities">;
-	tradeType: "buy" | "sell" | "dividend" | "split" | "fee";
+	tradeType: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee";
 	executedOn: string;
 	quantityMicros: number;
 	priceMinor: number;
@@ -4748,7 +4786,7 @@ export interface TradeInsert {
 	entityId: Id<"legalEntities">;
 	accountId: Id<"accounts">;
 	securityId: Id<"securities">;
-	tradeType?: "buy" | "sell" | "dividend" | "split" | "fee";
+	tradeType?: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee";
 	executedOn: string;
 	quantityMicros: number;
 	priceMinor: number;
@@ -4761,7 +4799,7 @@ export interface TradePatch {
 	entityId?: number;
 	accountId?: number;
 	securityId?: number;
-	tradeType?: "buy" | "sell" | "dividend" | "split" | "fee";
+	tradeType?: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee";
 	executedOn?: string;
 	quantityMicros?: number;
 	priceMinor?: number;
@@ -4842,15 +4880,15 @@ export interface TradeFilter {
 		isNull?: true;
 		isNotNull?: true;
 	} | SecurityFilter;
-	tradeType?: "buy" | "sell" | "dividend" | "split" | "fee" | null | {
-		eq?: "buy" | "sell" | "dividend" | "split" | "fee" | null;
-		ne?: "buy" | "sell" | "dividend" | "split" | "fee" | null;
-		gt?: "buy" | "sell" | "dividend" | "split" | "fee";
-		gte?: "buy" | "sell" | "dividend" | "split" | "fee";
-		lt?: "buy" | "sell" | "dividend" | "split" | "fee";
-		lte?: "buy" | "sell" | "dividend" | "split" | "fee";
-		in?: ("buy" | "sell" | "dividend" | "split" | "fee")[];
-		notIn?: ("buy" | "sell" | "dividend" | "split" | "fee")[];
+	tradeType?: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee" | null | {
+		eq?: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee" | null;
+		ne?: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee" | null;
+		gt?: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee";
+		gte?: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee";
+		lt?: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee";
+		lte?: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee";
+		in?: ("buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee")[];
+		notIn?: ("buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee")[];
 		like?: string;
 		ilike?: string;
 		notLike?: string;
@@ -7531,6 +7569,60 @@ export type SettleReimbursementClaimOutput = {
 	reimbursedBaseMinor: number;
 	fxVarianceMinor: number;
 };
+export interface CreateSecurityInput {
+	ticker: string;
+	name: string;
+	assetClass?: "stock" | "etf" | "crypto" | "private_equity" | "rsu_option" | "bond" | "fund" | "commodity" | "money_market" | "other";
+	currency?: "EUR" | "TRY" | "USD" | "GBP" | "CHF";
+	exchange?: string;
+	isin?: string;
+	unitLabel?: string;
+	lastPrice?: string;
+	initialQuantity?: string;
+	initialAvgPrice?: string;
+	initialTradeType?: "buy" | "vest_grant" | "transfer_in";
+	accountId?: string | number;
+	executedOn?: string;
+	notes?: string;
+}
+export type CreateSecurityOutput = {
+	id: number;
+	slug: string;
+	ticker: string;
+	initialTradeId: number | null;
+};
+export interface RecordTradeInput {
+	securityId: string | number;
+	accountId: string | number;
+	tradeType?: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee";
+	executedOn: string;
+	quantity: string;
+	price?: string;
+	fee?: string;
+	notes?: string;
+}
+export type RecordTradeOutput = {
+	id: number;
+	securityId: number;
+	tradeType: "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee";
+	baseTotalMinor: number;
+};
+export interface UpdateSecurityPriceInput {
+	securityId: string | number;
+	lastPrice: string;
+	pricedOn?: string;
+}
+export type UpdateSecurityPriceOutput = {
+	id: number;
+	ticker: string;
+	lastPriceMinor: number;
+	lastPricedOn: string;
+};
+export type RefreshMarketPricesInput = Record<string, never>;
+export type RefreshMarketPricesOutput = {
+	updated: number;
+	skipped: number;
+};
 export interface CreateShareLinkInput {
 	label: string;
 	entityId?: string | number;
@@ -7579,6 +7671,8 @@ export type DashboardSummaryOutput = {
 	netWorthBaseMinor: number;
 	receivablesBaseMinor: number;
 	openClaimsCount: number;
+	portfolioMarketBaseMinor: number;
+	holdingsCount: number;
 	accountCount: number;
 	unreviewedCount: number;
 };
@@ -7827,6 +7921,22 @@ export interface Actions {
 		input: SettleReimbursementClaimInput;
 		output: SettleReimbursementClaimOutput;
 	};
+	createSecurity: {
+		input: CreateSecurityInput;
+		output: CreateSecurityOutput;
+	};
+	recordTrade: {
+		input: RecordTradeInput;
+		output: RecordTradeOutput;
+	};
+	updateSecurityPrice: {
+		input: UpdateSecurityPriceInput;
+		output: UpdateSecurityPriceOutput;
+	};
+	refreshMarketPrices: {
+		input: RefreshMarketPricesInput;
+		output: RefreshMarketPricesOutput;
+	};
 	createShareLink: {
 		input: CreateShareLinkInput;
 		output: CreateShareLinkOutput;
@@ -7893,6 +8003,18 @@ export declare const SCHEMA: {
 			};
 			readonly settleReimbursementClaim: {
 				readonly ability: "settle-reimbursement-claim";
+			};
+			readonly createSecurity: {
+				readonly ability: "create-security";
+			};
+			readonly recordTrade: {
+				readonly ability: "record-trade";
+			};
+			readonly updateSecurityPrice: {
+				readonly ability: "update-security-price";
+			};
+			readonly refreshMarketPrices: {
+				readonly ability: "refresh-market-prices";
 			};
 			readonly createShareLink: {
 				readonly ability: "create-share-link";
@@ -8725,7 +8847,7 @@ export declare const SCHEMA: {
 		};
 	};
 	readonly globals: readonly ["financeSettings"];
-	readonly actions: readonly ["registerUpload", "approveProposal", "rejectProposal", "applyAllProposals", "recordEntry", "recordTransfer", "setReviewStatus", "createReimbursementClaim", "addReimbursementLine", "updateReimbursementState", "settleReimbursementClaim", "createShareLink", "revokeShareLink", "createInvitation", "acceptInvitation", "revokeGrant", "dashboardSummary", "seedDemoData"];
+	readonly actions: readonly ["registerUpload", "approveProposal", "rejectProposal", "applyAllProposals", "recordEntry", "recordTransfer", "setReviewStatus", "createReimbursementClaim", "addReimbursementLine", "updateReimbursementState", "settleReimbursementClaim", "createSecurity", "recordTrade", "updateSecurityPrice", "refreshMarketPrices", "createShareLink", "revokeShareLink", "createInvitation", "acceptInvitation", "revokeGrant", "dashboardSummary", "seedDemoData"];
 	readonly buckets: readonly ["inboxFiles"];
 };
 export type SchemaDescriptor = typeof SCHEMA;

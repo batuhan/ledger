@@ -25,13 +25,17 @@ import {
   valuations,
 } from "./schema";
 import {
+  computePosition,
   convertToBaseMinor,
+  parseDecimalToMicros,
   parseDecimalToMinor,
   parseStatementCsv,
   slugify,
   stripMarkdownJsonFences,
+  type AssetClass,
   type Currency,
   type PayerKind,
+  type TradeType,
 } from "./lib/money";
 
 type EntryKind =
@@ -1330,6 +1334,324 @@ export const settleReimbursementClaim = mutation(
 );
 
 // ---------------------------------------------------------------------------
+// Portfolio, Stocks & Holdings Mutations
+// ---------------------------------------------------------------------------
+
+export const createSecurity = mutation(
+  { access: "editor" },
+  async ({
+    ticker,
+    name,
+    assetClass,
+    currency,
+    exchange,
+    isin,
+    unitLabel,
+    lastPrice,
+    initialQuantity,
+    initialAvgPrice,
+    initialTradeType,
+    accountId,
+    executedOn,
+    notes,
+  }: {
+    ticker: string;
+    name: string;
+    assetClass?: AssetClass;
+    currency?: Currency;
+    exchange?: string;
+    isin?: string;
+    unitLabel?: string;
+    lastPrice?: string;
+    initialQuantity?: string;
+    initialAvgPrice?: string;
+    initialTradeType?: "buy" | "vest_grant" | "transfer_in";
+    accountId?: string | number;
+    executedOn?: string;
+    notes?: string;
+  }) => {
+    const cleanTicker = ticker.trim().toUpperCase();
+    const cleanName = name.trim();
+    if (cleanTicker === "") throw new HttpError(422, "invalid_input", "Ticker / symbol is required.", "/ticker");
+    if (cleanName === "") throw new HttpError(422, "invalid_input", "Asset name is required.", "/name");
+
+    const settings = await db.globals.financeSettings.get();
+    const resolvedCurrency: Currency =
+      currency === "TRY" || currency === "USD" || currency === "GBP" || currency === "CHF" || currency === "EUR"
+        ? currency
+        : "USD";
+    const resolvedClass: AssetClass =
+      assetClass === "stock" ||
+      assetClass === "etf" ||
+      assetClass === "crypto" ||
+      assetClass === "private_equity" ||
+      assetClass === "rsu_option" ||
+      assetClass === "bond" ||
+      assetClass === "fund" ||
+      assetClass === "commodity" ||
+      assetClass === "money_market" ||
+      assetClass === "other"
+        ? assetClass
+        : "stock";
+
+    const cleanUnit = (unitLabel ?? "").trim() || (resolvedClass === "crypto" ? cleanTicker : "shares");
+    const priceStr = (lastPrice ?? "").trim();
+    const parsedPrice = priceStr !== "" ? parseDecimalToMinor(priceStr) : 0;
+    const lastPriceMinor = Math.max(0, parsedPrice ?? 0);
+    const today = new Date().toISOString().slice(0, 10);
+
+    const baseSlug = slugify(cleanTicker);
+    const existingSlug = await db.query.securities.findFirst({ where: { slug: baseSlug } });
+    const slugVal = existingSlug ? `${baseSlug}-${String(Date.now())}` : baseSlug;
+
+    const [created] = await db
+      .insert(securities)
+      .values({
+        name: cleanName,
+        slug: slugVal,
+        ticker: cleanTicker.slice(0, 24),
+        isin: (isin ?? "").trim().slice(0, 24) || null,
+        exchange: (exchange ?? "").trim().toUpperCase().slice(0, 32) || null,
+        unitLabel: cleanUnit.slice(0, 24),
+        assetClass: resolvedClass,
+        currency: resolvedCurrency,
+        lastPriceMinor,
+        lastPricedOn: lastPriceMinor > 0 ? today : null,
+        notes: notes?.trim() || null,
+      })
+      .returning();
+    if (!created) throw new HttpError(500, "internal", "Could not create security.");
+
+    // Optional initial holding lot recorded inline in the same action.
+    const qtyStr = (initialQuantity ?? "").trim();
+    const qtyMicros = qtyStr !== "" ? parseDecimalToMicros(qtyStr) : null;
+    let initialTradeId: number | null = null;
+    if (qtyMicros !== null && qtyMicros > 0) {
+      const acctNum = accountId ? Number(accountId) : 0;
+      const acct =
+        Number.isInteger(acctNum) && acctNum > 0
+          ? await db.query.accounts.findFirst({ where: { id: acctNum } })
+          : await db.query.accounts.findFirst({ where: { accountType: "brokerage" } }) ??
+            (await db.query.accounts.findFirst({ orderBy: { id: "asc" } }));
+      if (!acct) {
+        throw new HttpError(422, "missing_account", "Create at least one account before recording an initial holding.");
+      }
+      const avgStr = (initialAvgPrice ?? "").trim();
+      const parsedAvg = avgStr !== "" ? parseDecimalToMinor(avgStr) : lastPriceMinor;
+      const unitCostMinor = Math.max(0, parsedAvg ?? lastPriceMinor);
+      const nativeTotalMinor = Math.round((qtyMicros * unitCostMinor) / 1_000_000);
+      const rateToBase = await lookupRateMicros(resolvedCurrency, settings.baseCurrency);
+      const baseTotalMinor = convertToBaseMinor(nativeTotalMinor, rateToBase);
+      const execStr = (executedOn ?? "").trim();
+      const isoDate = /^\d{4}-\d{2}-\d{2}$/.test(execStr) ? execStr : today;
+      const tType: TradeType =
+        initialTradeType === "vest_grant" || initialTradeType === "transfer_in" ? initialTradeType : "buy";
+
+      const [lot] = await db
+        .insert(trades)
+        .values({
+          entityId: acct.entityId,
+          accountId: acct.id,
+          securityId: created.id,
+          tradeType: tType,
+          executedOn: isoDate,
+          quantityMicros: qtyMicros,
+          priceMinor: unitCostMinor,
+          feeMinor: 0,
+          currency: resolvedCurrency,
+          baseTotalMinor,
+          notes: "Initial holding",
+        })
+        .returning();
+      if (lot) initialTradeId = lot.id;
+    }
+
+    return { id: created.id, slug: created.slug ?? slugVal, ticker: created.ticker, initialTradeId };
+  },
+);
+
+export const recordTrade = mutation(
+  { access: "editor" },
+  async ({
+    securityId,
+    accountId,
+    tradeType,
+    executedOn,
+    quantity,
+    price,
+    fee,
+    notes,
+  }: {
+    securityId: string | number;
+    accountId: string | number;
+    tradeType?: TradeType;
+    executedOn: string;
+    quantity: string;
+    price?: string;
+    fee?: string;
+    notes?: string;
+  }) => {
+    const secId = Number(securityId);
+    const accId = Number(accountId);
+    if (!Number.isInteger(secId) || secId <= 0) throw new HttpError(422, "invalid_input", "Select a security.", "/securityId");
+    if (!Number.isInteger(accId) || accId <= 0) throw new HttpError(422, "invalid_input", "Select an account.", "/accountId");
+
+    const sec = await db.query.securities.findFirst({ where: { id: secId } });
+    if (!sec) throw new HttpError(404, "not_found", `Security #${secId} not found.`);
+    const acc = await db.query.accounts.findFirst({ where: { id: accId } });
+    if (!acc) throw new HttpError(404, "not_found", `Account #${accId} not found.`);
+
+    const tType: TradeType =
+      tradeType === "sell" ||
+      tradeType === "vest_grant" ||
+      tradeType === "transfer_in" ||
+      tradeType === "transfer_out" ||
+      tradeType === "dividend" ||
+      tradeType === "split" ||
+      tradeType === "fee"
+        ? tradeType
+        : "buy";
+
+    const qtyParsed = parseDecimalToMicros(quantity);
+    const qtyMicros = qtyParsed !== null ? Math.abs(qtyParsed) : 0;
+    if (tType !== "dividend" && tType !== "fee" && qtyMicros <= 0) {
+      throw new HttpError(422, "invalid_input", "Enter a positive quantity (e.g. 10 or 0.25).", "/quantity");
+    }
+
+    const priceStr = (price ?? "").trim();
+    const priceParsed = priceStr !== "" ? parseDecimalToMinor(priceStr) : 0;
+    const priceMinor = Math.max(0, priceParsed ?? 0);
+    const feeStr = (fee ?? "").trim();
+    const feeParsed = feeStr !== "" ? parseDecimalToMinor(feeStr) : 0;
+    const feeMinor = Math.max(0, feeParsed ?? 0);
+
+    const execStr = executedOn.trim();
+    const isoDate = /^\d{4}-\d{2}-\d{2}$/.test(execStr) ? execStr : new Date().toISOString().slice(0, 10);
+
+    const settings = await db.globals.financeSettings.get();
+    const rateToBase = await lookupRateMicros(sec.currency, settings.baseCurrency);
+    const nativeTotalMinor =
+      tType === "dividend" || tType === "fee"
+        ? priceMinor
+        : tType === "split"
+          ? 0
+          : Math.round((qtyMicros * priceMinor) / 1_000_000) + feeMinor;
+    const baseTotalMinor = convertToBaseMinor(nativeTotalMinor, rateToBase);
+
+    const [created] = await db
+      .insert(trades)
+      .values({
+        entityId: acc.entityId,
+        accountId: acc.id,
+        securityId: sec.id,
+        tradeType: tType,
+        executedOn: isoDate,
+        quantityMicros: tType === "dividend" || tType === "fee" ? 0 : qtyMicros,
+        priceMinor,
+        feeMinor,
+        currency: sec.currency,
+        baseTotalMinor,
+        notes: notes?.trim() || null,
+      })
+      .returning();
+    if (!created) throw new HttpError(500, "internal", "Could not record trade.");
+
+    // If this buy/sell is at least as recent as the last recorded price, refresh lastPriceMinor.
+    if ((tType === "buy" || tType === "sell") && priceMinor > 0 && (sec.lastPricedOn === null || isoDate >= sec.lastPricedOn)) {
+      await db
+        .update(securities)
+        .set({ lastPriceMinor: priceMinor, lastPricedOn: isoDate })
+        .where({ id: sec.id });
+    }
+
+    return { id: created.id, securityId: sec.id, tradeType: tType, baseTotalMinor };
+  },
+);
+
+export const updateSecurityPrice = mutation(
+  { access: "editor" },
+  async ({
+    securityId,
+    lastPrice,
+    pricedOn,
+  }: {
+    securityId: string | number;
+    lastPrice: string;
+    pricedOn?: string;
+  }) => {
+    const secId = Number(securityId);
+    if (!Number.isInteger(secId) || secId <= 0) throw new HttpError(422, "invalid_input", "Invalid securityId.");
+    const sec = await db.query.securities.findFirst({ where: { id: secId } });
+    if (!sec) throw new HttpError(404, "not_found", `Security #${secId} not found.`);
+    const priceMinor = parseDecimalToMinor(lastPrice);
+    if (priceMinor === null || priceMinor < 0) {
+      throw new HttpError(422, "invalid_input", "Enter a valid non-negative price.", "/lastPrice");
+    }
+    const pricedStr = (pricedOn ?? "").trim();
+    const isoDate = /^\d{4}-\d{2}-\d{2}$/.test(pricedStr) ? pricedStr : new Date().toISOString().slice(0, 10);
+    await db
+      .update(securities)
+      .set({ lastPriceMinor: priceMinor, lastPricedOn: isoDate })
+      .where({ id: sec.id });
+    return { id: sec.id, ticker: sec.ticker, lastPriceMinor: priceMinor, lastPricedOn: isoDate };
+  },
+);
+
+export const refreshMarketPrices = mutation({ access: "editor" }, async () => {
+  const allSec = await db.query.securities.findMany({ limit: 100 });
+  const today = new Date().toISOString().slice(0, 10);
+  let updated = 0;
+  let skipped = 0;
+
+  for (const sec of allSec) {
+    if (
+      sec.assetClass === "private_equity" ||
+      sec.assetClass === "rsu_option" ||
+      sec.assetClass === "money_market" ||
+      sec.assetClass === "other"
+    ) {
+      skipped += 1;
+      continue;
+    }
+    const symbol =
+      sec.assetClass === "crypto" && !sec.ticker.includes("-")
+        ? `${sec.ticker}-${sec.currency}`
+        : sec.ticker;
+    try {
+      const res = await fetch(
+        `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`,
+        {
+          method: "GET",
+          headers: { "User-Agent": "Ledger/1.0" },
+        },
+      );
+      if (!res.ok) {
+        skipped += 1;
+        continue;
+      }
+      const data = (await res.json()) as {
+        chart?: { result?: Array<{ meta?: { regularMarketPrice?: number } }> };
+      };
+      const price = data.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if (typeof price === "number" && Number.isFinite(price) && price > 0) {
+        const priceMinor = Math.round(price * 100);
+        await db
+          .update(securities)
+          .set({ lastPriceMinor: priceMinor, lastPricedOn: today })
+          .where({ id: sec.id });
+        updated += 1;
+      } else {
+        skipped += 1;
+      }
+    } catch {
+      skipped += 1;
+    }
+  }
+
+  return { updated, skipped };
+});
+
+// ---------------------------------------------------------------------------
 // Sharing, Invitations & Grants Mutations
 // ---------------------------------------------------------------------------
 
@@ -1455,6 +1777,8 @@ export const dashboardSummary = query({ access: "authenticated" }, async () => {
   const allAccounts = await db.query.accounts.findMany({ where: { archived: false }, limit: 200 });
   const unreviewed = await db.query.entries.findMany({ where: { reviewStatus: "unreviewed" }, limit: 500 });
   const allClaims = await db.query.reimbursementClaims.findMany({ limit: 200 });
+  const allSecurities = await db.query.securities.findMany({ limit: 200 });
+  const allTrades = await db.query.trades.findMany({ limit: 1000 });
   let netWorthBaseMinor = 0;
   for (const a of allAccounts) {
     if (a.excludeFromTotals) continue;
@@ -1471,11 +1795,33 @@ export const dashboardSummary = query({ access: "authenticated" }, async () => {
       receivablesBaseMinor += convertToBaseMinor(c.totalMinor, rate);
     }
   }
+  let portfolioMarketBaseMinor = 0;
+  let holdingsCount = 0;
+  for (const sec of allSecurities) {
+    const secTrades = allTrades
+      .filter((t) => t.securityId === sec.id)
+      .map((t) => ({
+        tradeType: t.tradeType,
+        executedOn: t.executedOn,
+        quantityMicros: t.quantityMicros,
+        priceMinor: t.priceMinor,
+        feeMinor: t.feeMinor,
+        baseTotalMinor: t.baseTotalMinor,
+      }));
+    const rate = await lookupRateMicros(sec.currency, settings.baseCurrency);
+    const pos = computePosition(secTrades, sec.lastPriceMinor, rate);
+    if (pos.qtyMicros > 0) {
+      holdingsCount += 1;
+      portfolioMarketBaseMinor += pos.marketBaseMinor;
+    }
+  }
   return {
     baseCurrency: settings.baseCurrency,
     netWorthBaseMinor,
     receivablesBaseMinor,
     openClaimsCount,
+    portfolioMarketBaseMinor,
+    holdingsCount,
     accountCount: allAccounts.length,
     unreviewedCount: unreviewed.length,
   };
@@ -2038,14 +2384,16 @@ export const seedDemoData = mutation({ access: "editor" }, async () => {
     scheduleState: "active",
   });
 
-  // 12. Investments (Securities & Trades)
+  // 12. Investments (Stocks, ETFs, Crypto & Private Equity Holdings)
   const [vwce] = await db
     .insert(securities)
     .values({
       name: "Vanguard FTSE All-World UCITS ETF",
       slug: "vwce",
-      ticker: "VWCE",
+      ticker: "VWCE.DE",
       isin: "IE00BK5BQT80",
+      exchange: "XETRA",
+      unitLabel: "shares",
       assetClass: "etf",
       currency: "EUR",
       lastPriceMinor: 13_480,
@@ -2059,10 +2407,42 @@ export const seedDemoData = mutation({ access: "editor" }, async () => {
       slug: "msft",
       ticker: "MSFT",
       isin: "US5949181045",
+      exchange: "NASDAQ",
+      unitLabel: "shares",
       assetClass: "stock",
       currency: "USD",
       lastPriceMinor: 42_850,
       lastPricedOn: "2026-11-24",
+    })
+    .returning();
+  const [btc] = await db
+    .insert(securities)
+    .values({
+      name: "Bitcoin",
+      slug: "btc",
+      ticker: "BTC",
+      exchange: "CRYPTO",
+      unitLabel: "BTC",
+      assetClass: "crypto",
+      currency: "USD",
+      lastPriceMinor: 9_150_000,
+      lastPricedOn: "2026-11-24",
+      notes: "Long-term spot BTC held in self-custody hardware wallet.",
+    })
+    .returning();
+  const [autm] = await db
+    .insert(securities)
+    .values({
+      name: "Automattic Inc. (Vested Equity)",
+      slug: "autm-equity",
+      ticker: "AUTM",
+      exchange: "PRIVATE",
+      unitLabel: "shares",
+      assetClass: "private_equity",
+      currency: "USD",
+      lastPriceMinor: 5_200,
+      lastPricedOn: "2026-11-01",
+      notes: "Vested employer equity tracked at latest 409A / tender valuation.",
     })
     .returning();
   if (vwce) {
@@ -2091,6 +2471,49 @@ export const seedDemoData = mutation({ access: "editor" }, async () => {
       feeMinor: 150,
       currency: "USD",
       baseTotalMinor: 4_548_618,
+    });
+    await db.insert(trades).values({
+      entityId: personal.id,
+      accountId: ibkrAcc.id,
+      securityId: msft.id,
+      tradeType: "dividend",
+      executedOn: "2026-11-12",
+      quantityMicros: 0,
+      priceMinor: 9_960,
+      feeMinor: 0,
+      currency: "USD",
+      baseTotalMinor: 9_163,
+      notes: "Quarterly dividend ($0.83/share × 120)",
+    });
+  }
+  if (btc) {
+    await db.insert(trades).values({
+      entityId: personal.id,
+      accountId: ibkrAcc.id,
+      securityId: btc.id,
+      tradeType: "buy",
+      executedOn: "2026-05-18",
+      quantityMicros: 450_000,
+      priceMinor: 6_800_000,
+      feeMinor: 2_500,
+      currency: "USD",
+      baseTotalMinor: 2_817_500,
+      notes: "Spot BTC accumulation",
+    });
+  }
+  if (autm) {
+    await db.insert(trades).values({
+      entityId: personal.id,
+      accountId: ibkrAcc.id,
+      securityId: autm.id,
+      tradeType: "vest_grant",
+      executedOn: "2026-10-01",
+      quantityMicros: 500_000_000,
+      priceMinor: 4_500,
+      feeMinor: 0,
+      currency: "USD",
+      baseTotalMinor: 2_070_000,
+      notes: "Vested grant lot",
     });
   }
 

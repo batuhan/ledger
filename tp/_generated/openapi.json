@@ -7425,7 +7425,7 @@
           {
             "name": "orderBy",
             "in": "query",
-            "description": "Fields to sort by, comma-separated; `-` before a field sorts it descending (`-createdAt,title`). Fields: `id`, `name`, `slug`, `ticker`, `isin`, `assetClass`, `currency`, `lastPriceMinor`, `lastPricedOn`, `notes`, `status`, `publishedAt`, `author`, `createdAt`, `updatedAt`, `deletedAt`, `deletedBy`.",
+            "description": "Fields to sort by, comma-separated; `-` before a field sorts it descending (`-createdAt,title`). Fields: `id`, `name`, `slug`, `ticker`, `isin`, `exchange`, `unitLabel`, `assetClass`, `currency`, `lastPriceMinor`, `lastPricedOn`, `notes`, `status`, `publishedAt`, `author`, `createdAt`, `updatedAt`, `deletedAt`, `deletedBy`.",
             "schema": { "type": "string" }
           },
           { "$ref": "#/components/parameters/limit" },
@@ -17246,6 +17246,256 @@
         }
       }
     },
+    "/actions/createSecurity": {
+      "post": {
+        "tags": ["Actions"],
+        "operationId": "actions.createSecurity",
+        "summary": "Call createSecurity",
+        "x-typedpress-access": "editor",
+        "description": "Runs the `createSecurity` action with the input sent and returns its result.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "requestBody": {
+          "required": true,
+          "description": "The action's input.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ticker": { "type": "string" },
+                  "name": { "type": "string" },
+                  "assetClass": {
+                    "type": "string",
+                    "enum": [
+                      "stock",
+                      "etf",
+                      "crypto",
+                      "private_equity",
+                      "rsu_option",
+                      "bond",
+                      "fund",
+                      "commodity",
+                      "money_market",
+                      "other"
+                    ]
+                  },
+                  "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
+                  "exchange": { "type": "string" },
+                  "isin": { "type": "string" },
+                  "unitLabel": { "type": "string" },
+                  "lastPrice": { "type": "string" },
+                  "initialQuantity": { "type": "string" },
+                  "initialAvgPrice": { "type": "string" },
+                  "initialTradeType": { "type": "string", "enum": ["buy", "vest_grant", "transfer_in"] },
+                  "accountId": { "type": ["string", "number"] },
+                  "executedOn": { "type": "string" },
+                  "notes": { "type": "string" }
+                },
+                "required": ["ticker", "name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The action's result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": ["number", "null"] },
+                        "slug": { "type": "string" },
+                        "ticker": { "type": "string" },
+                        "initialTradeId": { "type": ["number", "null"] }
+                      },
+                      "required": ["id", "slug", "ticker", "initialTradeId"]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/actions/recordTrade": {
+      "post": {
+        "tags": ["Actions"],
+        "operationId": "actions.recordTrade",
+        "summary": "Call recordTrade",
+        "x-typedpress-access": "editor",
+        "description": "Runs the `recordTrade` action with the input sent and returns its result.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "requestBody": {
+          "required": true,
+          "description": "The action's input.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "securityId": { "type": ["string", "number"] },
+                  "accountId": { "type": ["string", "number"] },
+                  "tradeType": {
+                    "type": "string",
+                    "enum": ["buy", "sell", "vest_grant", "transfer_in", "transfer_out", "dividend", "split", "fee"]
+                  },
+                  "executedOn": { "type": "string" },
+                  "quantity": { "type": "string" },
+                  "price": { "type": "string" },
+                  "fee": { "type": "string" },
+                  "notes": { "type": "string" }
+                },
+                "required": ["securityId", "accountId", "executedOn", "quantity"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The action's result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": ["number", "null"] },
+                        "securityId": { "type": ["number", "null"] },
+                        "tradeType": {
+                          "type": ["string"],
+                          "enum": ["buy", "sell", "vest_grant", "transfer_in", "transfer_out", "dividend", "split", "fee"]
+                        },
+                        "baseTotalMinor": { "type": ["number", "null"] }
+                      },
+                      "required": ["id", "securityId", "tradeType", "baseTotalMinor"]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/actions/updateSecurityPrice": {
+      "post": {
+        "tags": ["Actions"],
+        "operationId": "actions.updateSecurityPrice",
+        "summary": "Call updateSecurityPrice",
+        "x-typedpress-access": "editor",
+        "description": "Runs the `updateSecurityPrice` action with the input sent and returns its result.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "requestBody": {
+          "required": true,
+          "description": "The action's input.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "securityId": { "type": ["string", "number"] },
+                  "lastPrice": { "type": "string" },
+                  "pricedOn": { "type": "string" }
+                },
+                "required": ["securityId", "lastPrice"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The action's result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": ["number", "null"] },
+                        "ticker": { "type": "string" },
+                        "lastPriceMinor": { "type": ["number", "null"] },
+                        "lastPricedOn": { "type": "string" }
+                      },
+                      "required": ["id", "ticker", "lastPriceMinor", "lastPricedOn"]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/actions/refreshMarketPrices": {
+      "post": {
+        "tags": ["Actions"],
+        "operationId": "actions.refreshMarketPrices",
+        "summary": "Call refreshMarketPrices",
+        "x-typedpress-access": "editor",
+        "description": "Runs the `refreshMarketPrices` action with the input sent and returns its result.\n\nAccess: Users with the `editor` role or a higher one may do this.",
+        "requestBody": {
+          "required": true,
+          "description": "The action's input.",
+          "content": {
+            "application/json": {
+              "schema": { "type": "object" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The action's result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "updated": { "type": ["number", "null"] },
+                        "skipped": { "type": ["number", "null"] }
+                      },
+                      "required": ["updated", "skipped"]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/Problem" },
+          "default": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
     "/actions/createShareLink": {
       "post": {
         "tags": ["Actions"],
@@ -17544,6 +17794,8 @@
                         "netWorthBaseMinor": { "type": ["number", "null"] },
                         "receivablesBaseMinor": { "type": ["number", "null"] },
                         "openClaimsCount": { "type": ["number", "null"] },
+                        "portfolioMarketBaseMinor": { "type": ["number", "null"] },
+                        "holdingsCount": { "type": ["number", "null"] },
                         "accountCount": { "type": ["number", "null"] },
                         "unreviewedCount": { "type": ["number", "null"] }
                       },
@@ -17552,6 +17804,8 @@
                         "netWorthBaseMinor",
                         "receivablesBaseMinor",
                         "openClaimsCount",
+                        "portfolioMarketBaseMinor",
+                        "holdingsCount",
                         "accountCount",
                         "unreviewedCount"
                       ]
@@ -17602,6 +17856,8 @@
                         "netWorthBaseMinor": { "type": ["number", "null"] },
                         "receivablesBaseMinor": { "type": ["number", "null"] },
                         "openClaimsCount": { "type": ["number", "null"] },
+                        "portfolioMarketBaseMinor": { "type": ["number", "null"] },
+                        "holdingsCount": { "type": ["number", "null"] },
                         "accountCount": { "type": ["number", "null"] },
                         "unreviewedCount": { "type": ["number", "null"] }
                       },
@@ -17610,6 +17866,8 @@
                         "netWorthBaseMinor",
                         "receivablesBaseMinor",
                         "openClaimsCount",
+                        "portfolioMarketBaseMinor",
+                        "holdingsCount",
                         "accountCount",
                         "unreviewedCount"
                       ]
@@ -20919,7 +21177,23 @@
           "slug": { "type": ["string", "null"], "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 200 },
           "ticker": { "type": "string", "minLength": 1, "maxLength": 24 },
           "isin": { "type": ["string", "null"], "maxLength": 24 },
-          "assetClass": { "type": "string", "enum": ["stock", "etf", "bond", "fund", "money_market"] },
+          "exchange": { "type": ["string", "null"], "maxLength": 32 },
+          "unitLabel": { "type": "string", "maxLength": 24 },
+          "assetClass": {
+            "type": "string",
+            "enum": [
+              "stock",
+              "etf",
+              "crypto",
+              "private_equity",
+              "rsu_option",
+              "bond",
+              "fund",
+              "commodity",
+              "money_market",
+              "other"
+            ]
+          },
           "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
           "lastPriceMinor": { "type": "integer" },
           "lastPricedOn": { "type": ["string", "null"] },
@@ -20949,7 +21223,23 @@
           "slug": { "type": ["string", "null"], "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 200 },
           "ticker": { "type": "string", "minLength": 1, "maxLength": 24 },
           "isin": { "type": ["string", "null"], "maxLength": 24 },
-          "assetClass": { "type": "string", "enum": ["stock", "etf", "bond", "fund", "money_market"] },
+          "exchange": { "type": ["string", "null"], "maxLength": 32 },
+          "unitLabel": { "type": "string", "maxLength": 24 },
+          "assetClass": {
+            "type": "string",
+            "enum": [
+              "stock",
+              "etf",
+              "crypto",
+              "private_equity",
+              "rsu_option",
+              "bond",
+              "fund",
+              "commodity",
+              "money_market",
+              "other"
+            ]
+          },
           "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
           "lastPriceMinor": { "type": "integer" },
           "lastPricedOn": { "type": ["string", "null"] },
@@ -20966,7 +21256,23 @@
           "slug": { "type": ["string", "null"], "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 200 },
           "ticker": { "type": "string", "minLength": 1, "maxLength": 24 },
           "isin": { "type": ["string", "null"], "maxLength": 24 },
-          "assetClass": { "type": "string", "enum": ["stock", "etf", "bond", "fund", "money_market"] },
+          "exchange": { "type": ["string", "null"], "maxLength": 32 },
+          "unitLabel": { "type": "string", "maxLength": 24 },
+          "assetClass": {
+            "type": "string",
+            "enum": [
+              "stock",
+              "etf",
+              "crypto",
+              "private_equity",
+              "rsu_option",
+              "bond",
+              "fund",
+              "commodity",
+              "money_market",
+              "other"
+            ]
+          },
           "currency": { "type": "string", "enum": ["EUR", "TRY", "USD", "GBP", "CHF"] },
           "lastPriceMinor": { "type": "integer" },
           "lastPricedOn": { "type": ["string", "null"] },
@@ -20991,6 +21297,8 @@
           "slug": { "$ref": "#/components/schemas/StringFilter" },
           "ticker": { "$ref": "#/components/schemas/StringFilter" },
           "isin": { "$ref": "#/components/schemas/StringFilter" },
+          "exchange": { "$ref": "#/components/schemas/StringFilter" },
+          "unitLabel": { "$ref": "#/components/schemas/StringFilter" },
           "assetClass": { "$ref": "#/components/schemas/StringFilter" },
           "currency": { "$ref": "#/components/schemas/StringFilter" },
           "lastPriceMinor": { "$ref": "#/components/schemas/IntegerFilter" },
@@ -21921,7 +22229,10 @@
               }
             ]
           },
-          "tradeType": { "type": "string", "enum": ["buy", "sell", "dividend", "split", "fee"] },
+          "tradeType": {
+            "type": "string",
+            "enum": ["buy", "sell", "vest_grant", "transfer_in", "transfer_out", "dividend", "split", "fee"]
+          },
           "executedOn": { "type": "string" },
           "quantityMicros": { "type": "integer" },
           "priceMinor": { "type": "integer" },
@@ -21946,7 +22257,10 @@
           "entityId": { "type": "integer" },
           "accountId": { "type": "integer" },
           "securityId": { "type": "integer" },
-          "tradeType": { "type": "string", "enum": ["buy", "sell", "dividend", "split", "fee"] },
+          "tradeType": {
+            "type": "string",
+            "enum": ["buy", "sell", "vest_grant", "transfer_in", "transfer_out", "dividend", "split", "fee"]
+          },
           "executedOn": { "type": "string" },
           "quantityMicros": { "type": "integer" },
           "priceMinor": { "type": "integer" },
@@ -21971,7 +22285,10 @@
           "entityId": { "type": "integer" },
           "accountId": { "type": "integer" },
           "securityId": { "type": "integer" },
-          "tradeType": { "type": "string", "enum": ["buy", "sell", "dividend", "split", "fee"] },
+          "tradeType": {
+            "type": "string",
+            "enum": ["buy", "sell", "vest_grant", "transfer_in", "transfer_out", "dividend", "split", "fee"]
+          },
           "executedOn": { "type": "string" },
           "quantityMicros": { "type": "integer" },
           "priceMinor": { "type": "integer" },

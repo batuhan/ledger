@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "id": "20261126190846_8mfy21_alter_trades_tradetype",
+  "ops": [
+    {
+      "op": "modifyColumn",
+      "table": "trades",
+      "column": "tradeType",
+      "from": {
+        "type": "text",
+        "notNull": true,
+        "primaryKey": false,
+        "autoIncrement": false,
+        "unique": false,
+        "max": null,
+        "enum": [
+          "buy",
+          "sell",
+          "dividend",
+          "split",
+          "fee"
+        ],
+        "default": "buy",
+        "references": null
+      },
+      "to": {
+        "type": "text",
+        "notNull": true,
+        "primaryKey": false,
+        "autoIncrement": false,
+        "unique": false,
+        "max": null,
+        "enum": [
+          "buy",
+          "sell",
+          "vest_grant",
+          "transfer_in",
+          "transfer_out",
+          "dividend",
+          "split",
+          "fee"
+        ],
+        "default": "buy",
+        "references": null
+      }
+    }
+  ]
+}

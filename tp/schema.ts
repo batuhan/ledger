@@ -24,12 +24,14 @@ import {
 } from "typedpress";
 import {
   ACCOUNT_TYPES,
+  ASSET_CLASSES,
   CLAIM_STATES,
   COUNTRIES,
   CURRENCIES,
   ENTITY_TYPES,
   ENTRY_KINDS,
   PAYER_KINDS,
+  TRADE_TYPES,
   slugify,
 } from "./lib/money";
 
@@ -322,7 +324,9 @@ export const securities = collection(
     slug: slug({ source: "name" }).optional(),
     ticker: text().min(1).max(24),
     isin: text().max(24).optional(),
-    assetClass: select(["stock", "etf", "bond", "fund", "money_market"]).default("etf"),
+    exchange: text().max(32).optional(),
+    unitLabel: text().max(24).default("shares"),
+    assetClass: select(ASSET_CLASSES).default("stock"),
     currency: select(CURRENCIES).default("USD"),
     lastPriceMinor: integer().default(0),
     lastPricedOn: date().optional(),
@@ -513,7 +517,7 @@ export const trades = table(
     entityId: ref(legalEntities).onDelete("restrict"),
     accountId: ref(accounts).onDelete("restrict"),
     securityId: ref(securities).onDelete("restrict").reverse("trades"),
-    tradeType: select(["buy", "sell", "dividend", "split", "fee"]).default("buy"),
+    tradeType: select(TRADE_TYPES).default("buy"),
     executedOn: date(),
     quantityMicros: integer(),
     priceMinor: integer(),

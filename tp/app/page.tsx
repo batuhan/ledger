@@ -1,7 +1,7 @@
 import { db } from "typedpress";
 import { Link, useFormState } from "typedpress/app";
 import { InboxDropzone } from "../components/InboxDropzone";
-import { convertToBaseMinor, formatMinor, formatSignedMinor } from "../lib/money";
+import { computePosition, convertToBaseMinor, formatMinor, formatPctBps, formatQtyMicros, formatSignedMinor } from "../lib/money";
 import { seedDemoData } from "../server";
 
 export const guard = "authenticated";
@@ -21,6 +21,8 @@ export default async function OverviewPage() {
   const upcomingRecurring = await db.query.recurringItems.findMany({ where: { scheduleState: "active" }, orderBy: { nextDueOn: "asc" }, limit: 10 });
   const pendingInbox = await db.query.ingestItems.findMany({ where: { ingestState: "needs_review" }, limit: 10 });
   const allClaims = await db.query.reimbursementClaims.findMany({ limit: 100 });
+  const allSecurities = await db.query.securities.findMany({ orderBy: { ticker: "asc" }, limit: 50 });
+  const allTrades = await db.query.trades.findMany({ limit: 500 });
 
   const rateFor = (from: string): number => {
     if (from === baseCurrency) return 1_000_000;
@@ -55,6 +57,33 @@ export default async function OverviewPage() {
       openInternalClaims += 1;
     }
   }
+
+  let portfolioMarketBase = 0;
+  let portfolioCostBase = 0;
+  const topHoldings = allSecurities
+    .map((sec) => {
+      const pos = computePosition(
+        allTrades
+          .filter((t) => t.securityId === sec.id)
+          .map((t) => ({
+            tradeType: t.tradeType,
+            executedOn: t.executedOn,
+            quantityMicros: t.quantityMicros,
+            priceMinor: t.priceMinor,
+            feeMinor: t.feeMinor,
+            baseTotalMinor: t.baseTotalMinor,
+          })),
+        sec.lastPriceMinor,
+        rateFor(sec.currency),
+      );
+      portfolioMarketBase += pos.marketBaseMinor;
+      portfolioCostBase += pos.costBasisBaseMinor;
+      return { sec, pos };
+    })
+    .filter((h) => h.pos.qtyMicros > 0)
+    .sort((a, b) => b.pos.marketBaseMinor - a.pos.marketBaseMinor);
+  const portfolioPnlBase = portfolioMarketBase - portfolioCostBase;
+  const portfolioPnlPctBps = portfolioCostBase > 0 ? Math.round((portfolioPnlBase * 10_000) / portfolioCostBase) : 0;
 
   const entityMap = new Map<number, { name: string; slug: string; country: string }>();
   for (const e of entities) {
@@ -223,6 +252,50 @@ export default async function OverviewPage() {
           </div>
         </section>
       </div>
+
+      {topHoldings.length > 0 && (
+        <section className="card">
+          <div className="card-head">
+            <h2>
+              Portfolio &amp; Holdings — {formatMinor(portfolioMarketBase, baseCurrency)}{" "}
+              <span className={portfolioPnlBase >= 0 ? "pill pill-ok" : "pill"}>
+                {formatSignedMinor(portfolioPnlBase, baseCurrency)} ({formatPctBps(portfolioPnlPctBps)})
+              </span>
+            </h2>
+            <Link href="/investments">Manage stocks &amp; assets →</Link>
+          </div>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Asset</th>
+                  <th>Class</th>
+                  <th className="num">Quantity</th>
+                  <th className="num">Last Price</th>
+                  <th className="num">Value ({baseCurrency})</th>
+                  <th className="num">P&amp;L</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topHoldings.slice(0, 6).map(({ sec, pos }) => (
+                  <tr>
+                    <td className="mono"><strong><Link href={`/investments/${sec.slug}`}>{sec.ticker}</Link></strong></td>
+                    <td><Link href={`/investments/${sec.slug}`}>{sec.name}</Link></td>
+                    <td><span className="pill">{sec.assetClass.replace("_", " ")}</span></td>
+                    <td className="num">{formatQtyMicros(pos.qtyMicros)} <span className="muted">{sec.unitLabel}</span></td>
+                    <td className="num">{formatMinor(sec.lastPriceMinor, sec.currency)}</td>
+                    <td className="num">{formatMinor(pos.marketBaseMinor, baseCurrency)}</td>
+                    <td className={pos.unrealizedPnlBaseMinor >= 0 ? "num pos" : "num"}>
+                      {formatPctBps(pos.unrealizedPnlPctBps)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </>
   );
 }

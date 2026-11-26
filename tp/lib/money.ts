@@ -36,6 +36,142 @@ export type PayerKind = "internal_entity" | "external_counterparty";
 export const CLAIM_STATES = ["draft", "submitted", "approved", "paid", "rejected"] as const;
 export type ClaimState = "draft" | "submitted" | "approved" | "paid" | "rejected";
 
+export const ASSET_CLASSES = [
+  "stock",
+  "etf",
+  "crypto",
+  "private_equity",
+  "rsu_option",
+  "bond",
+  "fund",
+  "commodity",
+  "money_market",
+  "other",
+] as const;
+export type AssetClass =
+  | "stock"
+  | "etf"
+  | "crypto"
+  | "private_equity"
+  | "rsu_option"
+  | "bond"
+  | "fund"
+  | "commodity"
+  | "money_market"
+  | "other";
+
+export const TRADE_TYPES = [
+  "buy",
+  "sell",
+  "vest_grant",
+  "transfer_in",
+  "transfer_out",
+  "dividend",
+  "split",
+  "fee",
+] as const;
+export type TradeType = "buy" | "sell" | "vest_grant" | "transfer_in" | "transfer_out" | "dividend" | "split" | "fee";
+
+export function parseDecimalToMicros(raw: string): number | null {
+  const trimmed = raw.trim().replace(/\s+/g, "");
+  if (trimmed === "") return null;
+  let normalized = trimmed;
+  const lastComma = normalized.lastIndexOf(",");
+  const lastDot = normalized.lastIndexOf(".");
+  if (lastComma > lastDot) {
+    normalized = normalized.replace(/\./g, "").replace(",", ".");
+  } else {
+    normalized = normalized.replace(/,/g, "");
+  }
+  normalized = normalized.replace(/[^0-9.+-]/g, "");
+  const num = Number(normalized);
+  if (!Number.isFinite(num)) return null;
+  return Math.round(num * 1_000_000);
+}
+
+export interface PositionTradeInput {
+  tradeType: TradeType;
+  executedOn: string;
+  quantityMicros: number;
+  priceMinor: number;
+  feeMinor: number;
+  baseTotalMinor: number;
+}
+
+export interface ComputedPosition {
+  qtyMicros: number;
+  avgCostMinor: number;
+  costBasisNativeMinor: number;
+  costBasisBaseMinor: number;
+  marketNativeMinor: number;
+  marketBaseMinor: number;
+  unrealizedPnlBaseMinor: number;
+  unrealizedPnlPctBps: number;
+  dividendsBaseMinor: number;
+}
+
+export function computePosition(
+  tradesInput: PositionTradeInput[],
+  lastPriceMinor: number,
+  rateToBaseMicros: number,
+): ComputedPosition {
+  const sorted = [...tradesInput].sort((a, b) => (a.executedOn < b.executedOn ? -1 : a.executedOn > b.executedOn ? 1 : 0));
+  let qtyMicros = 0;
+  let costBasisNativeMinor = 0;
+  let costBasisBaseMinor = 0;
+  let dividendsBaseMinor = 0;
+
+  for (const t of sorted) {
+    if (t.tradeType === "buy" || t.tradeType === "vest_grant" || t.tradeType === "transfer_in") {
+      const lotNative = Math.round((t.quantityMicros * t.priceMinor) / 1_000_000) + t.feeMinor;
+      qtyMicros += t.quantityMicros;
+      costBasisNativeMinor += lotNative;
+      costBasisBaseMinor += t.baseTotalMinor;
+    } else if (t.tradeType === "sell" || t.tradeType === "transfer_out") {
+      if (qtyMicros > 0 && t.quantityMicros > 0) {
+        const soldFraction = Math.min(1, t.quantityMicros / qtyMicros);
+        costBasisNativeMinor = Math.round(costBasisNativeMinor * (1 - soldFraction));
+        costBasisBaseMinor = Math.round(costBasisBaseMinor * (1 - soldFraction));
+      }
+      qtyMicros = Math.max(0, qtyMicros - t.quantityMicros);
+      if (qtyMicros === 0) {
+        costBasisNativeMinor = 0;
+        costBasisBaseMinor = 0;
+      }
+    } else if (t.tradeType === "split") {
+      if (t.quantityMicros > 0 && qtyMicros > 0) {
+        qtyMicros = Math.round((qtyMicros * t.quantityMicros) / 1_000_000);
+      }
+    } else if (t.tradeType === "dividend") {
+      dividendsBaseMinor += Math.abs(t.baseTotalMinor);
+    }
+  }
+
+  const avgCostMinor = qtyMicros > 0 ? Math.round((costBasisNativeMinor * 1_000_000) / qtyMicros) : 0;
+  const marketNativeMinor = Math.round((qtyMicros * lastPriceMinor) / 1_000_000);
+  const marketBaseMinor = convertToBaseMinor(marketNativeMinor, rateToBaseMicros);
+  const unrealizedPnlBaseMinor = marketBaseMinor - costBasisBaseMinor;
+  const unrealizedPnlPctBps =
+    costBasisBaseMinor > 0 ? Math.round((unrealizedPnlBaseMinor * 10_000) / costBasisBaseMinor) : 0;
+
+  return {
+    qtyMicros,
+    avgCostMinor,
+    costBasisNativeMinor,
+    costBasisBaseMinor,
+    marketNativeMinor,
+    marketBaseMinor,
+    unrealizedPnlBaseMinor,
+    unrealizedPnlPctBps,
+    dividendsBaseMinor,
+  };
+}
+
+export function formatPctBps(bps: number): string {
+  const sign = bps > 0 ? "+" : "";
+  return `${sign}${(bps / 100).toFixed(2)}%`;
+}
+
 export function stripMarkdownJsonFences(raw: string): string {
   const trimmed = raw.trim();
   if (trimmed.startsWith("```")) {

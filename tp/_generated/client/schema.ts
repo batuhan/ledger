@@ -39,6 +39,18 @@ export const SCHEMA = {
       "settleReimbursementClaim": {
         "ability": "settle-reimbursement-claim"
       },
+      "createSecurity": {
+        "ability": "create-security"
+      },
+      "recordTrade": {
+        "ability": "record-trade"
+      },
+      "updateSecurityPrice": {
+        "ability": "update-security-price"
+      },
+      "refreshMarketPrices": {
+        "ability": "refresh-market-prices"
+      },
       "createShareLink": {
         "ability": "create-share-link"
       },
@@ -890,6 +902,10 @@ export const SCHEMA = {
     "addReimbursementLine",
     "updateReimbursementState",
     "settleReimbursementClaim",
+    "createSecurity",
+    "recordTrade",
+    "updateSecurityPrice",
+    "refreshMarketPrices",
     "createShareLink",
     "revokeShareLink",
     "createInvitation",

@@ -1,0 +1,1 @@
+-- Forward-only schema metadata migration (20261126190846_8mfy21_alter_trades_tradetype); no SQL DDL required.
