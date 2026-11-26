@@ -1,0 +1,655 @@
+{
+  "version": 1,
+  "id": "20261126185431_syq8b9_update",
+  "ops": [
+    {
+      "op": "createTable",
+      "table": "reimbursement_claims",
+      "physicalTable": "{prefix}tp_reimbursement_claims",
+      "def": {
+        "editor": false,
+        "drafts": false,
+        "columns": {
+          "id": {
+            "type": "integer",
+            "notNull": true,
+            "primaryKey": true,
+            "autoIncrement": true,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "title": {
+            "type": "text",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": 160.0,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "payerKind": {
+            "type": "text",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": [
+              "internal_entity",
+              "external_counterparty"
+            ],
+            "default": "external_counterparty",
+            "references": null
+          },
+          "businessEntityId": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": {
+              "table": "legal_entities",
+              "column": "id",
+              "onDelete": "set null",
+              "onUpdate": null,
+              "unsigned": true
+            }
+          },
+          "counterpartyPayeeId": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": {
+              "table": "payees",
+              "column": "id",
+              "onDelete": "set null",
+              "onUpdate": null,
+              "unsigned": true
+            }
+          },
+          "reimburseToAccountId": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": {
+              "table": "accounts",
+              "column": "id",
+              "onDelete": "set null",
+              "onUpdate": null,
+              "unsigned": true
+            }
+          },
+          "claimState": {
+            "type": "text",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": [
+              "draft",
+              "submitted",
+              "approved",
+              "paid",
+              "rejected"
+            ],
+            "default": "draft",
+            "references": null
+          },
+          "currency": {
+            "type": "text",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": [
+              "EUR",
+              "TRY",
+              "USD",
+              "GBP",
+              "CHF"
+            ],
+            "default": "EUR",
+            "references": null
+          },
+          "totalMinor": {
+            "type": "integer",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": 0,
+            "references": null
+          },
+          "reimbursedBaseMinor": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "fxVarianceMinor": {
+            "type": "integer",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": 0,
+            "references": null
+          },
+          "payoutTransferId": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": {
+              "table": "transfers",
+              "column": "id",
+              "onDelete": "set null",
+              "onUpdate": null,
+              "unsigned": true
+            }
+          },
+          "payoutEntryId": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": {
+              "table": "entries",
+              "column": "id",
+              "onDelete": "set null",
+              "onUpdate": null,
+              "unsigned": true
+            }
+          },
+          "externalRef": {
+            "type": "text",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": 120.0,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "submittedOn": {
+            "type": "date",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "paidOn": {
+            "type": "date",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "notes": {
+            "type": "text",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "createdAt": {
+            "type": "timestamp",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "author": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "updatedAt": {
+            "type": "timestamp",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": "1970-01-01T00:00:00.000Z",
+            "references": null
+          },
+          "deletedAt": {
+            "type": "timestamp",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "deletedBy": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "deletedGroup": {
+            "type": "text",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": 36.0,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "_live": {
+            "type": "boolean",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": true,
+            "references": null
+          }
+        },
+        "softDelete": true,
+        "queried": [
+          "id",
+          "payoutEntryId"
+        ]
+      }
+    },
+    {
+      "op": "createTable",
+      "table": "reimbursement_lines",
+      "physicalTable": "{prefix}tp_reimbursement_lines",
+      "def": {
+        "editor": false,
+        "drafts": false,
+        "columns": {
+          "id": {
+            "type": "integer",
+            "notNull": true,
+            "primaryKey": true,
+            "autoIncrement": true,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "claimId": {
+            "type": "integer",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": {
+              "table": "reimbursement_claims",
+              "column": "id",
+              "onDelete": "cascade",
+              "onUpdate": null,
+              "unsigned": true
+            }
+          },
+          "sourceEntryId": {
+            "type": "integer",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": {
+              "table": "entries",
+              "column": "id",
+              "onDelete": "restrict",
+              "onUpdate": null,
+              "unsigned": true
+            }
+          },
+          "businessCategoryId": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": {
+              "table": "categories",
+              "column": "id",
+              "onDelete": "set null",
+              "onUpdate": null,
+              "unsigned": true
+            }
+          },
+          "splitBps": {
+            "type": "integer",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": 10000,
+            "references": null
+          },
+          "reimbursableMinor": {
+            "type": "integer",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "currency": {
+            "type": "text",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": [
+              "EUR",
+              "TRY",
+              "USD",
+              "GBP",
+              "CHF"
+            ],
+            "default": "EUR",
+            "references": null
+          },
+          "baseMinor": {
+            "type": "integer",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "receiptFileId": {
+            "type": "file",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "notes": {
+            "type": "text",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "author": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "createdAt": {
+            "type": "timestamp",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": "1970-01-01T00:00:00.000Z",
+            "references": null
+          },
+          "updatedAt": {
+            "type": "timestamp",
+            "notNull": true,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": "1970-01-01T00:00:00.000Z",
+            "references": null
+          },
+          "deletedAt": {
+            "type": "timestamp",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "deletedBy": {
+            "type": "integer",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "deletedGroup": {
+            "type": "text",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": 36.0,
+            "enum": null,
+            "default": null,
+            "references": null
+          },
+          "_live": {
+            "type": "boolean",
+            "notNull": false,
+            "primaryKey": false,
+            "autoIncrement": false,
+            "unique": false,
+            "max": null,
+            "enum": null,
+            "default": true,
+            "references": null
+          }
+        },
+        "softDelete": true,
+        "queried": [
+          "claimId",
+          "id",
+          "sourceEntryId"
+        ]
+      }
+    },
+    {
+      "op": "modifyColumn",
+      "table": "entries",
+      "column": "entryKind",
+      "from": {
+        "type": "text",
+        "notNull": true,
+        "primaryKey": false,
+        "autoIncrement": false,
+        "unique": false,
+        "max": null,
+        "enum": [
+          "expense",
+          "income",
+          "transfer",
+          "fx_conversion",
+          "card_payment",
+          "inter_entity",
+          "fee",
+          "tax",
+          "investment"
+        ],
+        "default": "expense",
+        "references": null
+      },
+      "to": {
+        "type": "text",
+        "notNull": true,
+        "primaryKey": false,
+        "autoIncrement": false,
+        "unique": false,
+        "max": null,
+        "enum": [
+          "expense",
+          "income",
+          "transfer",
+          "fx_conversion",
+          "card_payment",
+          "inter_entity",
+          "reimbursement",
+          "fee",
+          "tax",
+          "investment"
+        ],
+        "default": "expense",
+        "references": null
+      }
+    },
+    {
+      "op": "modifyColumn",
+      "table": "ingest_proposals",
+      "column": "entryKind",
+      "from": {
+        "type": "text",
+        "notNull": true,
+        "primaryKey": false,
+        "autoIncrement": false,
+        "unique": false,
+        "max": null,
+        "enum": [
+          "expense",
+          "income",
+          "transfer",
+          "fx_conversion",
+          "card_payment",
+          "inter_entity",
+          "fee",
+          "tax",
+          "investment"
+        ],
+        "default": "expense",
+        "references": null
+      },
+      "to": {
+        "type": "text",
+        "notNull": true,
+        "primaryKey": false,
+        "autoIncrement": false,
+        "unique": false,
+        "max": null,
+        "enum": [
+          "expense",
+          "income",
+          "transfer",
+          "fx_conversion",
+          "card_payment",
+          "inter_entity",
+          "reimbursement",
+          "fee",
+          "tax",
+          "investment"
+        ],
+        "default": "expense",
+        "references": null
+      }
+    }
+  ]
+}

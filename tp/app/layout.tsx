@@ -25,6 +25,7 @@ export default function RootLayout({ children }: LayoutProps) {
           <Link href="/inbox" className="nav-link">Drop Inbox</Link>
           <Link href="/entries" className="nav-link">Ledger Entries</Link>
           <Link href="/transfers" className="nav-link">Transfers &amp; FX</Link>
+          <Link href="/reimbursements" className="nav-link">Reimbursements</Link>
         </nav>
 
         <nav className="nav-group" aria-label="Structure">

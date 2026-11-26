@@ -21,6 +21,16 @@ export default async function EntryDetailPage({ params }: PageProps<"entries/[id
     ? await db.query.installmentPlans.findFirst({ where: { id: entry.installmentPlanId } })
     : null;
   const transfer = entry.transferId ? await db.query.transfers.findFirst({ where: { id: entry.transferId } }) : null;
+  const linkedLines = await db.query.reimbursementLines.findMany({ where: { sourceEntryId: entry.id }, limit: 10 });
+  const settledClaims = await db.query.reimbursementClaims.findMany({ where: { payoutEntryId: entry.id }, limit: 10 });
+  const claimIds = new Set<number>();
+  for (const l of linkedLines) claimIds.add(l.claimId);
+  for (const c of settledClaims) claimIds.add(c.id);
+  const linkedClaims: Array<{ id: number; title: string; claimState: string; payerKind: string }> = [];
+  for (const cid of claimIds) {
+    const c = await db.query.reimbursementClaims.findFirst({ where: { id: cid } });
+    if (c) linkedClaims.push({ id: c.id, title: c.title, claimState: c.claimState, payerKind: c.payerKind });
+  }
 
   return (
     <>
@@ -100,6 +110,19 @@ export default async function EntryDetailPage({ params }: PageProps<"entries/[id
             {transfer.transferKind} on {transfer.executedOn}: {formatMinor(transfer.fromAmountMinor, transfer.fromCurrency)} → {formatMinor(transfer.toAmountMinor, transfer.toCurrency)}
             {transfer.reference ? ` (Ref: ${transfer.reference})` : ""}. <Link href="/transfers">View all transfers →</Link>
           </p>
+        </section>
+      )}
+
+      {linkedClaims.length > 0 && (
+        <section className="card">
+          <div className="card-head"><h2>Linked Reimbursement Claims</h2></div>
+          <div className="action-bar">
+            {linkedClaims.map((c) => (
+              <Link href={`/reimbursements/${c.id}`} className="pill pill-entity">
+                #{c.id} · {c.title} ({c.claimState})
+              </Link>
+            ))}
+          </div>
         </section>
       )}
     </>

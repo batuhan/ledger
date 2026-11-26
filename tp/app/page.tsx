@@ -20,6 +20,7 @@ export default async function OverviewPage() {
   const activePlans = await db.query.installmentPlans.findMany({ where: { status: "active" }, limit: 20 });
   const upcomingRecurring = await db.query.recurringItems.findMany({ where: { scheduleState: "active" }, orderBy: { nextDueOn: "asc" }, limit: 10 });
   const pendingInbox = await db.query.ingestItems.findMany({ where: { ingestState: "needs_review" }, limit: 10 });
+  const allClaims = await db.query.reimbursementClaims.findMany({ limit: 100 });
 
   const rateFor = (from: string): number => {
     if (from === baseCurrency) return 1_000_000;
@@ -40,6 +41,19 @@ export default async function OverviewPage() {
     netWorthBase += baseVal;
     if (baseVal < 0) liabilitiesBase += baseVal;
     entityTotals.set(a.entityId, (entityTotals.get(a.entityId) ?? 0) + baseVal);
+  }
+
+  let receivablesBase = 0;
+  let openExternalClaims = 0;
+  let openInternalClaims = 0;
+  for (const c of allClaims) {
+    if (c.claimState === "paid" || c.claimState === "rejected") continue;
+    if (c.payerKind === "external_counterparty") {
+      receivablesBase += convertToBaseMinor(c.totalMinor, rateFor(c.currency));
+      openExternalClaims += 1;
+    } else {
+      openInternalClaims += 1;
+    }
   }
 
   const entityMap = new Map<number, { name: string; slug: string; country: string }>();
@@ -90,19 +104,26 @@ export default async function OverviewPage() {
           <div className="stat-meta">{allAccounts.length} active accounts</div>
         </div>
         <div className="stat-card">
+          <div className="stat-label">Owed to You (Receivables)</div>
+          <div className="stat-value pos">{formatMinor(receivablesBase, baseCurrency)}</div>
+          <div className="stat-meta">
+            <Link href="/reimbursements">
+              {openExternalClaims} external · {openInternalClaims} internal claim(s) →
+            </Link>
+          </div>
+        </div>
+        <div className="stat-card">
           <div className="stat-label">Card / Debt Balances</div>
           <div className="stat-value">{formatMinor(liabilitiesBase, baseCurrency)}</div>
           <div className="stat-meta">{activePlans.length} active taksit plans</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Unreviewed Entries</div>
-          <div className="stat-value">{unreviewed.length}</div>
-          <div className="stat-meta"><Link href="/entries?status=unreviewed">Open review queue →</Link></div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Inbox Pending Review</div>
-          <div className="stat-value">{pendingInbox.length}</div>
-          <div className="stat-meta"><Link href="/inbox">Review uploaded statements →</Link></div>
+          <div className="stat-label">Review &amp; Inbox Queue</div>
+          <div className="stat-value">{unreviewed.length + pendingInbox.length}</div>
+          <div className="stat-meta">
+            <Link href="/entries?status=unreviewed">{unreviewed.length} entries</Link> ·{" "}
+            <Link href="/inbox">{pendingInbox.length} imports</Link>
+          </div>
         </div>
       </section>
 

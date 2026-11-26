@@ -16,6 +16,8 @@ import {
   legalEntities,
   payees,
   recurringItems,
+  reimbursementClaims,
+  reimbursementLines,
   securities,
   shareLinks,
   trades,
@@ -27,10 +29,22 @@ import {
   parseDecimalToMinor,
   parseStatementCsv,
   slugify,
+  stripMarkdownJsonFences,
   type Currency,
+  type PayerKind,
 } from "./lib/money";
 
-type EntryKind = "expense" | "income" | "transfer" | "fx_conversion" | "card_payment" | "inter_entity" | "fee" | "tax" | "investment";
+type EntryKind =
+  | "expense"
+  | "income"
+  | "transfer"
+  | "fx_conversion"
+  | "card_payment"
+  | "inter_entity"
+  | "reimbursement"
+  | "fee"
+  | "tax"
+  | "investment";
 type TransferKind = "same_currency" | "fx_conversion" | "card_payment" | "inter_entity" | "broker_funding";
 
 // ---------------------------------------------------------------------------
@@ -62,6 +76,22 @@ async function lookupRateMicros(fromCurrency: Currency, toCurrency: Currency): P
 // ---------------------------------------------------------------------------
 // Background AI & CSV Ingestion Job (PR #615: FileBucket reads + 60s/16 MiB fetch)
 // ---------------------------------------------------------------------------
+
+type ExtractedRow = {
+  postedOn?: string;
+  description?: string;
+  merchant?: string;
+  amountMinor?: number;
+  currency?: string;
+  entryKind?: string;
+  installmentCount?: number | null;
+};
+
+type ExtractedDocument = {
+  institution?: string;
+  currency?: string;
+  rows?: ExtractedRow[];
+};
 
 export const processIngestItem = job({ retries: 2 }, async ({ ingestItemId }: { ingestItemId: number }) => {
   const item = await db.query.ingestItems.findFirst({ where: { id: ingestItemId } });
@@ -132,59 +162,165 @@ export const processIngestItem = job({ retries: 2 }, async ({ ingestItemId }: { 
     return;
   }
 
-  // Binary document (PDF statement or receipt image): read base64 from private storage.
-  // When FINANCE_AI_API_KEY is configured, send to OpenAI using the job's 60s / 16 MiB fetch budget.
+  // Binary document (PDF statement or receipt image): read full base64 from private storage.
+  // Supports native PDF + image multimodal extraction via Gemini, Anthropic, or OpenAI using
+  // the background job's 60s / 16 MiB fetch() budget.
   const b64 = await inboxFiles.readBase64(fileId);
-  const apiKey = process.env.FINANCE_AI_API_KEY;
-  if (apiKey && apiKey.trim() !== "") {
-    const prompt =
-      "Extract financial transactions from this statement or receipt. Respond with strict JSON: " +
-      '{"institution":"string","currency":"EUR|TRY|USD|GBP|CHF","rows":[{"postedOn":"YYYY-MM-DD","description":"string","merchant":"string","amountMinor":-1250,"currency":"EUR","entryKind":"expense|income|transfer|fee","installmentCount":null}]}';
-    const isImage = meta.mime.startsWith("image/");
-    const contentPart = isImage
-      ? { type: "image_url", image_url: { url: `data:${meta.mime};base64,${b64}` } }
-      : { type: "text", text: `Filename: ${meta.filename} (${meta.mime}, ${meta.size} bytes). Base64 prefix: ${b64.slice(0, 4000)}` };
+  const geminiKey = (process.env.GEMINI_API_KEY ?? "").trim();
+  const anthropicKey = (process.env.ANTHROPIC_API_KEY ?? "").trim();
+  const openaiKey = (process.env.OPENAI_API_KEY ?? "").trim();
+  const genericKey = (process.env.FINANCE_AI_API_KEY ?? "").trim();
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: settings.aiModel,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: "You extract structured accounting ledger rows from statements and receipts." },
-          { role: "user", content: [{ type: "text", text: prompt }, contentPart] },
-        ],
-      }),
-    });
-    if (res.ok) {
-      const payload = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-      const rawJson = payload.choices?.[0]?.message?.content ?? "{}";
-      const extracted = JSON.parse(rawJson) as {
-        institution?: string;
-        currency?: string;
-        rows?: Array<{
-          postedOn?: string;
-          description?: string;
-          merchant?: string;
-          amountMinor?: number;
-          currency?: string;
-          entryKind?: string;
-          installmentCount?: number | null;
-        }>;
-      };
+  let activeProvider: "gemini" | "anthropic" | "openai" | null = null;
+  let activeKey = "";
+  if (settings.aiProvider === "gemini" && (geminiKey !== "" || genericKey !== "")) {
+    activeProvider = "gemini";
+    activeKey = geminiKey !== "" ? geminiKey : genericKey;
+  } else if (settings.aiProvider === "anthropic" && (anthropicKey !== "" || genericKey !== "")) {
+    activeProvider = "anthropic";
+    activeKey = anthropicKey !== "" ? anthropicKey : genericKey;
+  } else if (settings.aiProvider === "openai" && (openaiKey !== "" || genericKey !== "")) {
+    activeProvider = "openai";
+    activeKey = openaiKey !== "" ? openaiKey : genericKey;
+  } else if (geminiKey !== "") {
+    activeProvider = "gemini";
+    activeKey = geminiKey;
+  } else if (anthropicKey !== "") {
+    activeProvider = "anthropic";
+    activeKey = anthropicKey;
+  } else if (openaiKey !== "") {
+    activeProvider = "openai";
+    activeKey = openaiKey;
+  }
+
+  if (activeProvider !== null && activeKey !== "") {
+    const prompt =
+      "Extract all financial transactions from this bank statement, credit card PDF, invoice, or receipt. " +
+      "Use negative integer minor units for expenses/outflows (e.g. -1250 for -12.50) and positive for inflows/refunds. " +
+      "Detect Turkish installment plans like '2/6 TAKSIT' into installmentCount. " +
+      'Respond ONLY with strict JSON matching: {"institution":"string","currency":"EUR|TRY|USD|GBP|CHF","rows":[{"postedOn":"YYYY-MM-DD","description":"string","merchant":"string","amountMinor":-1250,"currency":"EUR","entryKind":"expense|income|transfer|fee","installmentCount":null}]}';
+
+    const configuredModel = settings.aiModel.trim();
+    const isPdf = meta.mime === "application/pdf";
+    let rawModelText = "";
+
+    if (activeProvider === "gemini") {
+      const model =
+        settings.aiProvider === "gemini" && configuredModel !== "" ? configuredModel : "gemini-2.5-flash";
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "x-goog-api-key": activeKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [
+                  { text: prompt },
+                  { inline_data: { mime_type: meta.mime, data: b64 } },
+                ],
+              },
+            ],
+            generationConfig: {
+              responseMimeType: "application/json",
+            },
+          }),
+        },
+      );
+      if (res.ok) {
+        const payload = (await res.json()) as {
+          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+        };
+        rawModelText = payload.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      }
+    } else if (activeProvider === "anthropic") {
+      const model =
+        settings.aiProvider === "anthropic" && configuredModel !== "" ? configuredModel : "claude-sonnet-4-20250514";
+      const docPart = isPdf
+        ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } }
+        : { type: "image", source: { type: "base64", media_type: meta.mime, data: b64 } };
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": activeKey,
+          "anthropic-version": "2023-06-01",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 4096,
+          system: "You extract structured accounting ledger rows from statements, invoices, and receipts. Output strict JSON only.",
+          messages: [{ role: "user", content: [docPart, { type: "text", text: prompt }] }],
+        }),
+      });
+      if (res.ok) {
+        const payload = (await res.json()) as {
+          content?: Array<{ type?: string; text?: string }>;
+        };
+        const textBlock = payload.content?.find((b) => b.type === "text");
+        rawModelText = textBlock?.text ?? "";
+      }
+    } else {
+      const model =
+        settings.aiProvider === "openai" && configuredModel !== "" ? configuredModel : "gpt-4.1-mini";
+      const filePart = isPdf
+        ? { type: "input_file", filename: meta.filename, file_data: `data:application/pdf;base64,${b64}` }
+        : { type: "input_image", image_url: `data:${meta.mime};base64,${b64}` };
+      const res = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${activeKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          text: { format: { type: "json_object" } },
+          input: [{ role: "user", content: [filePart, { type: "input_text", text: prompt }] }],
+        }),
+      });
+      if (res.ok) {
+        const payload = (await res.json()) as {
+          output_text?: string;
+          output?: Array<{ content?: Array<{ type?: string; text?: string }> }>;
+        };
+        const fallbackBlock = payload.output?.[0]?.content?.find((c) => c.type === "output_text");
+        rawModelText = payload.output_text ?? fallbackBlock?.text ?? "";
+      }
+    }
+
+    if (rawModelText.trim() !== "") {
+      const rawJson = stripMarkdownJsonFences(rawModelText);
+      let extracted: ExtractedDocument = {};
+      try {
+        extracted = JSON.parse(rawJson) as ExtractedDocument;
+      } catch {
+        extracted = {};
+      }
       const rows = extracted.rows ?? [];
+      const detectedCurrency: Currency =
+        extracted.currency === "TRY" ||
+        extracted.currency === "USD" ||
+        extracted.currency === "GBP" ||
+        extracted.currency === "CHF" ||
+        extracted.currency === "EUR"
+          ? extracted.currency
+          : fallbackCurrency;
       let count = 0;
       for (const r of rows) {
         const amt = typeof r.amountMinor === "number" ? Math.round(r.amountMinor) : 0;
         if (amt === 0) continue;
-        const ccy =
-          r.currency === "TRY" || r.currency === "USD" || r.currency === "GBP" || r.currency === "CHF"
+        const ccy: Currency =
+          r.currency === "TRY" ||
+          r.currency === "USD" ||
+          r.currency === "GBP" ||
+          r.currency === "CHF" ||
+          r.currency === "EUR"
             ? r.currency
-            : "EUR";
+            : detectedCurrency;
         const kind =
           r.entryKind === "income" || r.entryKind === "transfer" || r.entryKind === "fee" ? r.entryKind : "expense";
         const rawPosted = r.postedOn ?? "";
@@ -202,7 +338,7 @@ export const processIngestItem = job({ retries: 2 }, async ({ ingestItemId }: { 
           suggestedAccountId: defaultAccount?.id ?? null,
           entryKind: kind,
           installmentCount: inst,
-          confidenceBps: 8500,
+          confidenceBps: 8900,
           status: "pending",
           rawJson,
         });
@@ -213,8 +349,8 @@ export const processIngestItem = job({ retries: 2 }, async ({ ingestItemId }: { 
           .update(ingestItems)
           .set({
             ingestState: "needs_review",
-            detectedInstitution: (extracted.institution ?? "AI Extraction").slice(0, 80),
-            detectedCurrency: fallbackCurrency,
+            detectedInstitution: (extracted.institution ?? `AI (${activeProvider})`).slice(0, 80),
+            detectedCurrency,
             proposalCount: count,
           })
           .where({ id: item.id });
@@ -692,6 +828,508 @@ export const setReviewStatus = mutation(
 );
 
 // ---------------------------------------------------------------------------
+// Unified Internal & External Reimbursements Mutations
+// ---------------------------------------------------------------------------
+
+export const createReimbursementClaim = mutation(
+  { access: "editor" },
+  async ({
+    title,
+    payerKind,
+    businessEntityId,
+    counterpartyPayeeId,
+    newCounterpartyName,
+    reimburseToAccountId,
+    currency,
+    externalRef,
+    notes,
+  }: {
+    title: string;
+    payerKind?: PayerKind;
+    businessEntityId?: string | number;
+    counterpartyPayeeId?: string | number;
+    newCounterpartyName?: string;
+    reimburseToAccountId?: string | number;
+    currency?: Currency;
+    externalRef?: string;
+    notes?: string;
+  }) => {
+    const cleanTitle = title.trim();
+    if (cleanTitle === "") {
+      throw new HttpError(422, "invalid_input", "Claim title is required.", "/title");
+    }
+    const kind: PayerKind = payerKind === "internal_entity" ? "internal_entity" : "external_counterparty";
+    const settings = await db.globals.financeSettings.get();
+    const resolvedCurrency: Currency =
+      currency === "TRY" || currency === "USD" || currency === "GBP" || currency === "CHF" || currency === "EUR"
+        ? currency
+        : settings.baseCurrency;
+
+    let resolvedEntityId: number | null = null;
+    let resolvedPayeeId: number | null = null;
+
+    if (kind === "internal_entity") {
+      const entNum = businessEntityId ? Number(businessEntityId) : 0;
+      if (!Number.isInteger(entNum) || entNum <= 0) {
+        throw new HttpError(422, "invalid_input", "Select the internal legal entity paying this reimbursement.", "/businessEntityId");
+      }
+      const entity = await db.query.legalEntities.findFirst({ where: { id: entNum } });
+      if (!entity) throw new HttpError(404, "not_found", "Business entity not found.");
+      resolvedEntityId = entity.id;
+    } else {
+      const payeeNum = counterpartyPayeeId ? Number(counterpartyPayeeId) : 0;
+      const cleanNewName = (newCounterpartyName ?? "").trim();
+      if (cleanNewName !== "") {
+        const slugVal = slugify(cleanNewName);
+        const existingPayee = await db.query.payees.findFirst({ where: { slug: slugVal } });
+        if (existingPayee) {
+          resolvedPayeeId = existingPayee.id;
+        } else {
+          const [createdPayee] = await db
+            .insert(payees)
+            .values({ name: cleanNewName, slug: slugVal })
+            .returning();
+          if (createdPayee) resolvedPayeeId = createdPayee.id;
+        }
+      } else if (Number.isInteger(payeeNum) && payeeNum > 0) {
+        const payee = await db.query.payees.findFirst({ where: { id: payeeNum } });
+        if (!payee) throw new HttpError(404, "not_found", "Counterparty payee not found.");
+        resolvedPayeeId = payee.id;
+      } else {
+        throw new HttpError(
+          422,
+          "invalid_input",
+          "Select an external payer (e.g. Automattic Inc.) or enter a new counterparty name.",
+          "/counterpartyPayeeId",
+        );
+      }
+    }
+
+    const toAccNum = reimburseToAccountId ? Number(reimburseToAccountId) : 0;
+    const resolvedToAccId = Number.isInteger(toAccNum) && toAccNum > 0 ? toAccNum : null;
+
+    const [created] = await db
+      .insert(reimbursementClaims)
+      .values({
+        title: cleanTitle,
+        payerKind: kind,
+        businessEntityId: resolvedEntityId,
+        counterpartyPayeeId: resolvedPayeeId,
+        reimburseToAccountId: resolvedToAccId,
+        claimState: "draft",
+        currency: resolvedCurrency,
+        totalMinor: 0,
+        fxVarianceMinor: 0,
+        externalRef: externalRef?.trim() || null,
+        notes: notes?.trim() || null,
+      })
+      .returning();
+    if (!created) throw new HttpError(500, "internal", "Could not create reimbursement claim.");
+    return { id: created.id, payerKind: created.payerKind };
+  },
+);
+
+export const addReimbursementLine = mutation(
+  { access: "editor" },
+  async ({
+    claimId,
+    sourceEntryId,
+    splitPercent,
+    businessCategoryId,
+    notes,
+  }: {
+    claimId: string | number;
+    sourceEntryId: string | number;
+    splitPercent?: string | number;
+    businessCategoryId?: string | number;
+    notes?: string;
+  }) => {
+    const cid = Number(claimId);
+    const eid = Number(sourceEntryId);
+    if (!Number.isInteger(cid) || cid <= 0) throw new HttpError(422, "invalid_input", "Invalid claimId.");
+    if (!Number.isInteger(eid) || eid <= 0) throw new HttpError(422, "invalid_input", "Select a source expense entry.");
+
+    const claim = await db.query.reimbursementClaims.findFirst({ where: { id: cid } });
+    if (!claim) throw new HttpError(404, "not_found", `Claim #${cid} not found.`);
+    if (claim.claimState === "paid") {
+      throw new HttpError(409, "already_paid", "Cannot add lines to a claim that has already been settled.");
+    }
+    const entry = await db.query.entries.findFirst({ where: { id: eid } });
+    if (!entry) throw new HttpError(404, "not_found", `Source entry #${eid} not found.`);
+
+    const pctRaw = splitPercent !== undefined && String(splitPercent).trim() !== "" ? Number(splitPercent) : 100;
+    const pct = Number.isFinite(pctRaw) && pctRaw > 0 && pctRaw <= 100 ? pctRaw : 100;
+    const splitBps = Math.max(1, Math.min(10_000, Math.round(pct * 100)));
+
+    const reimbursableMinor = Math.round((Math.abs(entry.amountMinor) * splitBps) / 10_000);
+    if (reimbursableMinor <= 0) {
+      throw new HttpError(422, "invalid_input", "Reimbursable amount must be greater than zero.");
+    }
+
+    const settings = await db.globals.financeSettings.get();
+    const rateToBase = await lookupRateMicros(entry.currency, settings.baseCurrency);
+    const baseMinor = convertToBaseMinor(reimbursableMinor, rateToBase);
+
+    const catNum = businessCategoryId ? Number(businessCategoryId) : 0;
+    const resolvedCatId = Number.isInteger(catNum) && catNum > 0 ? catNum : null;
+
+    const [line] = await db
+      .insert(reimbursementLines)
+      .values({
+        claimId: claim.id,
+        sourceEntryId: entry.id,
+        businessCategoryId: resolvedCatId,
+        splitBps,
+        reimbursableMinor,
+        currency: entry.currency,
+        baseMinor,
+        receiptFileId: entry.receiptFileId,
+        notes: notes?.trim() || null,
+      })
+      .returning();
+    if (!line) throw new HttpError(500, "internal", "Could not add reimbursement line.");
+
+    // Exclude 100% reimbursed personal out-of-pocket expenses from personal budget metrics.
+    if (splitBps === 10_000 && !entry.excludeFromBudget) {
+      await db.update(entries).set({ excludeFromBudget: true }).where({ id: entry.id });
+    }
+
+    // Recompute claim total in claim.currency across all lines.
+    const allLines = await db.query.reimbursementLines.findMany({ where: { claimId: claim.id }, limit: 200 });
+    let totalMinor = 0;
+    for (const l of allLines) {
+      const rateToClaim = await lookupRateMicros(l.currency, claim.currency);
+      totalMinor += convertToBaseMinor(l.reimbursableMinor, rateToClaim);
+    }
+    await db.update(reimbursementClaims).set({ totalMinor }).where({ id: claim.id });
+
+    return { id: line.id, claimId: claim.id, totalMinor };
+  },
+);
+
+export const updateReimbursementState = mutation(
+  { access: "editor" },
+  async ({
+    claimId,
+    claimState,
+  }: {
+    claimId: number;
+    claimState: "draft" | "submitted" | "approved" | "rejected";
+  }) => {
+    if (!Number.isInteger(claimId) || claimId <= 0) {
+      throw new HttpError(422, "invalid_input", "claimId must be a positive integer.");
+    }
+    const claim = await db.query.reimbursementClaims.findFirst({ where: { id: claimId } });
+    if (!claim) throw new HttpError(404, "not_found", `Claim #${claimId} not found.`);
+    if (claim.claimState === "paid") {
+      throw new HttpError(409, "already_paid", "Settled reimbursement claims cannot change workflow state.");
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    const submittedOn = claimState === "submitted" && claim.submittedOn === null ? today : claim.submittedOn;
+    await db
+      .update(reimbursementClaims)
+      .set({ claimState, submittedOn })
+      .where({ id: claim.id });
+    return { id: claim.id, claimState };
+  },
+);
+
+export const settleReimbursementClaim = mutation(
+  { access: "editor" },
+  async ({
+    claimId,
+    paidOn,
+    fromBusinessAccountId,
+    toAccountId,
+    payoutAmount,
+    existingPayoutEntryId,
+    reference,
+  }: {
+    claimId: string | number;
+    paidOn?: string;
+    fromBusinessAccountId?: string | number;
+    toAccountId?: string | number;
+    payoutAmount?: string;
+    existingPayoutEntryId?: string | number;
+    reference?: string;
+  }): Promise<{
+    id: number;
+    claimState: string;
+    payoutTransferId: number | null;
+    payoutEntryId: number | null;
+    reimbursedBaseMinor: number;
+    fxVarianceMinor: number;
+  }> => {
+    const cid = Number(claimId);
+    if (!Number.isInteger(cid) || cid <= 0) throw new HttpError(422, "invalid_input", "Invalid claimId.");
+    const claim = await db.query.reimbursementClaims.findFirst({ where: { id: cid } });
+    if (!claim) throw new HttpError(404, "not_found", `Claim #${cid} not found.`);
+    if (claim.claimState === "paid") {
+      throw new HttpError(409, "already_paid", "This claim has already been settled.");
+    }
+
+    const lines = await db.query.reimbursementLines.findMany({ where: { claimId: claim.id }, limit: 200 });
+    if (lines.length === 0) {
+      throw new HttpError(422, "empty_claim", "Attach at least one expense line before settling this claim.");
+    }
+
+    const settings = await db.globals.financeSettings.get();
+    const paidOnStr = (paidOn ?? "").trim();
+    const isoDate = /^\d{4}-\d{2}-\d{2}$/.test(paidOnStr) ? paidOnStr : new Date().toISOString().slice(0, 10);
+    const cleanRef = reference?.trim() || claim.externalRef || `REIMB-${claim.id}`;
+    const payoutAmountStr = (payoutAmount ?? "").trim();
+
+    let claimedBaseMinor = 0;
+    for (const l of lines) {
+      claimedBaseMinor += l.baseMinor;
+    }
+
+    const toAccNum = toAccountId ? Number(toAccountId) : (claim.reimburseToAccountId ?? 0);
+
+    if (claim.payerKind === "internal_entity") {
+      const businessEntityId = claim.businessEntityId;
+      if (businessEntityId === null) {
+        throw new HttpError(422, "missing_entity", "Internal reimbursement claim is missing a business entity.");
+      }
+      const fromAccNum = fromBusinessAccountId ? Number(fromBusinessAccountId) : 0;
+      if (!Number.isInteger(fromAccNum) || fromAccNum <= 0) {
+        throw new HttpError(422, "invalid_input", "Select the business bank account paying this claim.", "/fromBusinessAccountId");
+      }
+      if (!Number.isInteger(toAccNum) || toAccNum <= 0) {
+        throw new HttpError(422, "invalid_input", "Select the personal account receiving the payout.", "/toAccountId");
+      }
+      const fromAcc = await db.query.accounts.findFirst({ where: { id: fromAccNum } });
+      const toAcc = await db.query.accounts.findFirst({ where: { id: toAccNum } });
+      if (!fromAcc || !toAcc) throw new HttpError(404, "not_found", "Payout source or destination account not found.");
+      if (fromAcc.id === toAcc.id) {
+        throw new HttpError(422, "invalid_input", "Business paying account and personal receiving account must differ.");
+      }
+
+      const defaultToRate = await lookupRateMicros(claim.currency, toAcc.currency);
+      const parsedPayout = payoutAmountStr !== "" ? parseDecimalToMinor(payoutAmountStr) : null;
+      const payoutToMinor =
+        parsedPayout !== null && parsedPayout !== 0
+          ? Math.abs(parsedPayout)
+          : convertToBaseMinor(claim.totalMinor, defaultToRate);
+      const toToFromRate = await lookupRateMicros(toAcc.currency, fromAcc.currency);
+      const payoutFromMinor = convertToBaseMinor(payoutToMinor, toToFromRate);
+      const transferFxRateMicros =
+        payoutFromMinor > 0 ? Math.round((payoutToMinor * 1_000_000) / payoutFromMinor) : 1_000_000;
+
+      // 1. Book deductible business expense entries for each line on the business entity (without double-subtracting cash).
+      for (const l of lines) {
+        const src = await db.query.entries.findFirst({ where: { id: l.sourceEntryId } });
+        const bizCat = l.businessCategoryId
+          ? await db.query.categories.findFirst({ where: { id: l.businessCategoryId } })
+          : null;
+        const rateToFrom = await lookupRateMicros(l.currency, fromAcc.currency);
+        const lineFromMinor = convertToBaseMinor(l.reimbursableMinor, rateToFrom);
+        const vatAmountMinor =
+          bizCat && bizCat.vatRateBps > 0
+            ? Math.round((lineFromMinor * bizCat.vatRateBps) / (10_000 + bizCat.vatRateBps))
+            : null;
+        await db.insert(entries).values({
+          entityId: businessEntityId,
+          accountId: fromAcc.id,
+          categoryId: bizCat?.id ?? null,
+          postedOn: isoDate,
+          description: `Reimbursed: ${src?.description ?? claim.title}`,
+          merchantRaw: src?.merchantRaw ?? claim.title.slice(0, 120),
+          amountMinor: -lineFromMinor,
+          currency: fromAcc.currency,
+          baseAmountMinor: -l.baseMinor,
+          fxRateMicros: await lookupRateMicros(fromAcc.currency, settings.baseCurrency),
+          entryKind: "expense",
+          reviewStatus: "reviewed",
+          excludeFromBudget: false,
+          excludeFromTotals: true,
+          vatAmountMinor,
+          receiptFileId: l.receiptFileId,
+          tagsJson: ["reimbursed-internal"],
+          externalRef: cleanRef,
+          notes: `Internal reimbursement claim #${claim.id} (from personal entry #${l.sourceEntryId})`,
+        });
+      }
+
+      // 2. Create atomic inter-entity transfer and move account balances.
+      const [transfer] = await db
+        .insert(transfers)
+        .values({
+          transferKind: "inter_entity",
+          fromAccountId: fromAcc.id,
+          toAccountId: toAcc.id,
+          fromAmountMinor: payoutFromMinor,
+          fromCurrency: fromAcc.currency,
+          toAmountMinor: payoutToMinor,
+          toCurrency: toAcc.currency,
+          feeMinor: 0,
+          fxRateMicros: transferFxRateMicros,
+          executedOn: isoDate,
+          reference: cleanRef,
+          notes: `Reimbursement settlement for claim #${claim.id}: ${claim.title}`,
+        })
+        .returning();
+      if (!transfer) throw new HttpError(500, "internal", "Could not create reimbursement transfer.");
+
+      const fromBaseRate = await lookupRateMicros(fromAcc.currency, settings.baseCurrency);
+      const toBaseRate = await lookupRateMicros(toAcc.currency, settings.baseCurrency);
+      const reimbursedBaseMinor = convertToBaseMinor(payoutToMinor, toBaseRate);
+      const fxVarianceMinor = reimbursedBaseMinor - claimedBaseMinor;
+
+      await db.insert(entries).values({
+        entityId: fromAcc.entityId,
+        accountId: fromAcc.id,
+        transferId: transfer.id,
+        postedOn: isoDate,
+        description: `Reimbursement transfer to ${toAcc.name}`,
+        amountMinor: -payoutFromMinor,
+        currency: fromAcc.currency,
+        baseAmountMinor: convertToBaseMinor(-payoutFromMinor, fromBaseRate),
+        fxRateMicros: fromBaseRate,
+        entryKind: "inter_entity",
+        reviewStatus: "reviewed",
+        excludeFromBudget: true,
+        excludeFromTotals: true,
+        externalRef: cleanRef,
+      });
+      await db.insert(entries).values({
+        entityId: toAcc.entityId,
+        accountId: toAcc.id,
+        transferId: transfer.id,
+        postedOn: isoDate,
+        description: `Reimbursement from ${fromAcc.name}`,
+        amountMinor: payoutToMinor,
+        currency: toAcc.currency,
+        baseAmountMinor: reimbursedBaseMinor,
+        fxRateMicros: toBaseRate,
+        entryKind: "inter_entity",
+        reviewStatus: "reviewed",
+        excludeFromBudget: true,
+        excludeFromTotals: true,
+        externalRef: cleanRef,
+      });
+
+      await db.update(accounts).set({ balanceMinor: fromAcc.balanceMinor - payoutFromMinor }).where({ id: fromAcc.id });
+      await db.update(accounts).set({ balanceMinor: toAcc.balanceMinor + payoutToMinor }).where({ id: toAcc.id });
+
+      await db
+        .update(reimbursementClaims)
+        .set({
+          claimState: "paid",
+          paidOn: isoDate,
+          payoutTransferId: transfer.id,
+          reimburseToAccountId: toAcc.id,
+          reimbursedBaseMinor,
+          fxVarianceMinor,
+        })
+        .where({ id: claim.id });
+
+      return {
+        id: claim.id,
+        claimState: "paid",
+        payoutTransferId: transfer.id,
+        payoutEntryId: null,
+        reimbursedBaseMinor,
+        fxVarianceMinor,
+      };
+    }
+
+    // External counterparty reimbursement (e.g., Automattic Inc., clients, conferences):
+    // Link an existing incoming deposit OR create a new positive reimbursement deposit entry.
+    const existingEntryNum = existingPayoutEntryId ? Number(existingPayoutEntryId) : 0;
+    let payoutEntryId = 0;
+    let reimbursedBaseMinor = 0;
+    let settledAccountId = claim.reimburseToAccountId;
+
+    if (Number.isInteger(existingEntryNum) && existingEntryNum > 0) {
+      const deposit = await db.query.entries.findFirst({ where: { id: existingEntryNum } });
+      if (!deposit) throw new HttpError(404, "not_found", `Deposit entry #${existingEntryNum} not found.`);
+      if (deposit.amountMinor <= 0) {
+        throw new HttpError(422, "invalid_input", "Linked payout deposit must be a positive inflow entry.");
+      }
+      await db
+        .update(entries)
+        .set({
+          entryKind: "reimbursement",
+          excludeFromBudget: true,
+          payeeId: claim.counterpartyPayeeId ?? deposit.payeeId,
+        })
+        .where({ id: deposit.id });
+      payoutEntryId = deposit.id;
+      reimbursedBaseMinor = deposit.baseAmountMinor;
+      settledAccountId = deposit.accountId;
+    } else {
+      if (!Number.isInteger(toAccNum) || toAccNum <= 0) {
+        throw new HttpError(422, "invalid_input", "Select the bank account where the reimbursement deposit landed.", "/toAccountId");
+      }
+      const toAcc = await db.query.accounts.findFirst({ where: { id: toAccNum } });
+      if (!toAcc) throw new HttpError(404, "not_found", "Destination account not found.");
+
+      const defaultToRate = await lookupRateMicros(claim.currency, toAcc.currency);
+      const parsedPayout = payoutAmountStr !== "" ? parseDecimalToMinor(payoutAmountStr) : null;
+      const payoutToMinor =
+        parsedPayout !== null && parsedPayout !== 0
+          ? Math.abs(parsedPayout)
+          : convertToBaseMinor(claim.totalMinor, defaultToRate);
+      const toBaseRate = await lookupRateMicros(toAcc.currency, settings.baseCurrency);
+      reimbursedBaseMinor = convertToBaseMinor(payoutToMinor, toBaseRate);
+
+      const payee = claim.counterpartyPayeeId
+        ? await db.query.payees.findFirst({ where: { id: claim.counterpartyPayeeId } })
+        : null;
+      const [deposit] = await db
+        .insert(entries)
+        .values({
+          entityId: toAcc.entityId,
+          accountId: toAcc.id,
+          payeeId: claim.counterpartyPayeeId,
+          postedOn: isoDate,
+          description: `Reimbursement payout: ${claim.title}`,
+          merchantRaw: (payee?.name ?? "External Reimbursement").slice(0, 120),
+          amountMinor: payoutToMinor,
+          currency: toAcc.currency,
+          baseAmountMinor: reimbursedBaseMinor,
+          fxRateMicros: toBaseRate,
+          entryKind: "reimbursement",
+          reviewStatus: "reviewed",
+          excludeFromBudget: true,
+          excludeFromTotals: false,
+          tagsJson: ["reimbursement"],
+          externalRef: cleanRef,
+          notes: `Settled external reimbursement claim #${claim.id}`,
+        })
+        .returning();
+      if (!deposit) throw new HttpError(500, "internal", "Could not create reimbursement deposit entry.");
+      await db.update(accounts).set({ balanceMinor: toAcc.balanceMinor + payoutToMinor }).where({ id: toAcc.id });
+      payoutEntryId = deposit.id;
+      settledAccountId = toAcc.id;
+    }
+
+    const fxVarianceMinor = reimbursedBaseMinor - claimedBaseMinor;
+    await db
+      .update(reimbursementClaims)
+      .set({
+        claimState: "paid",
+        paidOn: isoDate,
+        payoutEntryId,
+        reimburseToAccountId: settledAccountId,
+        reimbursedBaseMinor,
+        fxVarianceMinor,
+      })
+      .where({ id: claim.id });
+
+    return {
+      id: claim.id,
+      claimState: "paid",
+      payoutTransferId: null,
+      payoutEntryId,
+      reimbursedBaseMinor,
+      fxVarianceMinor,
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
 // Sharing, Invitations & Grants Mutations
 // ---------------------------------------------------------------------------
 
@@ -816,15 +1454,28 @@ export const dashboardSummary = query({ access: "authenticated" }, async () => {
   const settings = await db.globals.financeSettings.get();
   const allAccounts = await db.query.accounts.findMany({ where: { archived: false }, limit: 200 });
   const unreviewed = await db.query.entries.findMany({ where: { reviewStatus: "unreviewed" }, limit: 500 });
+  const allClaims = await db.query.reimbursementClaims.findMany({ limit: 200 });
   let netWorthBaseMinor = 0;
   for (const a of allAccounts) {
     if (a.excludeFromTotals) continue;
     const rate = await lookupRateMicros(a.currency, settings.baseCurrency);
     netWorthBaseMinor += convertToBaseMinor(a.balanceMinor, rate);
   }
+  let receivablesBaseMinor = 0;
+  let openClaimsCount = 0;
+  for (const c of allClaims) {
+    if (c.claimState === "paid" || c.claimState === "rejected") continue;
+    openClaimsCount += 1;
+    if (c.payerKind === "external_counterparty") {
+      const rate = await lookupRateMicros(c.currency, settings.baseCurrency);
+      receivablesBaseMinor += convertToBaseMinor(c.totalMinor, rate);
+    }
+  }
   return {
     baseCurrency: settings.baseCurrency,
     netWorthBaseMinor,
+    receivablesBaseMinor,
+    openClaimsCount,
     accountCount: allAccounts.length,
     unreviewedCount: unreviewed.length,
   };
@@ -1146,6 +1797,16 @@ export const seedDemoData = mutation({ access: "editor" }, async () => {
   const [payeeAh] = await db.insert(payees).values({ name: "Albert Heijn", slug: "albert-heijn", defaultCategoryId: catGroceries?.id ?? null, country: "NL" }).returning();
   const [payeeCf] = await db.insert(payees).values({ name: "Cloudflare", slug: "cloudflare", defaultCategoryId: catCloud?.id ?? null, country: "US" }).returning();
   const [payeeThy] = await db.insert(payees).values({ name: "Turkish Airlines", slug: "turkish-airlines", defaultCategoryId: catTravel?.id ?? null, country: "TR" }).returning();
+  const [payeeAutomattic] = await db
+    .insert(payees)
+    .values({
+      name: "Automattic Inc.",
+      slug: "automattic-inc",
+      defaultCategoryId: catTravel?.id ?? null,
+      country: "US",
+      notes: "Employer — external travel & home-office expense reimbursements (Ramp).",
+    })
+    .returning();
 
   // 8. HSBC Turkey Taksit Installment Plan
   const [taksitPlan] = await db
@@ -1255,24 +1916,48 @@ export const seedDemoData = mutation({ access: "editor" }, async () => {
     reviewStatus: "reviewed",
     tagsJson: ["taksit", "hardware"],
   });
-  await db.insert(entries).values({
-    entityId: personal.id,
-    accountId: hsbcCardAcc.id,
-    cardId: hsbcPremier?.id ?? null,
-    categoryId: catTravel?.id ?? null,
-    payeeId: payeeThy?.id ?? null,
-    postedOn: "2026-11-19",
-    description: "Turkish Airlines AMS ↔ IST",
-    merchantRaw: "THY ISTANBUL",
-    amountMinor: -1_840_000,
-    currency: "TRY",
-    baseAmountMinor: -48_760,
-    fxRateMicros: 26_500,
-    entryKind: "expense",
-    reviewStatus: "flagged",
-    tagsJson: ["travel", "reimbursable"],
-    notes: "Confirm whether split 50/50 with NL B.V.",
-  });
+  const [thyEntry] = await db
+    .insert(entries)
+    .values({
+      entityId: personal.id,
+      accountId: hsbcCardAcc.id,
+      cardId: hsbcPremier?.id ?? null,
+      categoryId: catTravel?.id ?? null,
+      payeeId: payeeThy?.id ?? null,
+      postedOn: "2026-11-19",
+      description: "Turkish Airlines AMS ↔ IST",
+      merchantRaw: "THY ISTANBUL",
+      amountMinor: -1_840_000,
+      currency: "TRY",
+      baseAmountMinor: -48_760,
+      fxRateMicros: 26_500,
+      entryKind: "expense",
+      reviewStatus: "flagged",
+      excludeFromBudget: true,
+      tagsJson: ["travel", "reimbursable"],
+      notes: "100% reimbursable by Automattic Inc. via Ramp.",
+    })
+    .returning();
+  const [jetbrainsEntry] = await db
+    .insert(entries)
+    .values({
+      entityId: personal.id,
+      accountId: bunqPersonal.id,
+      categoryId: catCloud?.id ?? null,
+      postedOn: "2026-11-22",
+      description: "JetBrains All Products Pack (Out-of-Pocket)",
+      merchantRaw: "JETBRAINS SRO",
+      amountMinor: -28_900,
+      currency: "EUR",
+      baseAmountMinor: -28_900,
+      fxRateMicros: 1_000_000,
+      entryKind: "expense",
+      reviewStatus: "reviewed",
+      excludeFromBudget: true,
+      tagsJson: ["devtools", "reimbursable"],
+      notes: "Paid on personal bunq card; to be reimbursed by Spacefast Holdings B.V.",
+    })
+    .returning();
   await db.insert(entries).values({
     entityId: trLtd.id,
     accountId: hsbcTry.id,
@@ -1420,7 +2105,67 @@ export const seedDemoData = mutation({ access: "editor" }, async () => {
     source: "statement",
   });
 
-  // 14. Sample Memo & Accountant Share Link
+  // 14. Reimbursements (External Employer Receivable + Internal B.V. Claim)
+  if (payeeAutomattic && thyEntry) {
+    const [extClaim] = await db
+      .insert(reimbursementClaims)
+      .values({
+        title: "Automattic Summit Travel — AMS ↔ IST",
+        payerKind: "external_counterparty",
+        counterpartyPayeeId: payeeAutomattic.id,
+        reimburseToAccountId: wisePersonalUsd.id,
+        claimState: "submitted",
+        currency: "EUR",
+        totalMinor: 48_760,
+        fxVarianceMinor: 0,
+        externalRef: "RAMP-REIMB-4910",
+        submittedOn: "2026-11-20",
+        notes: "Submitted via Ramp; expecting USD wire payout to Wise Personal USD.",
+      })
+      .returning();
+    if (extClaim) {
+      await db.insert(reimbursementLines).values({
+        claimId: extClaim.id,
+        sourceEntryId: thyEntry.id,
+        splitBps: 10_000,
+        reimbursableMinor: 1_840_000,
+        currency: "TRY",
+        baseMinor: 48_760,
+        notes: "Round-trip economy flight AMS ↔ IST.",
+      });
+    }
+  }
+  if (jetbrainsEntry) {
+    const [intClaim] = await db
+      .insert(reimbursementClaims)
+      .values({
+        title: "Q4 Developer Tools — Personal Card Out-of-Pocket",
+        payerKind: "internal_entity",
+        businessEntityId: nlBv.id,
+        reimburseToAccountId: bunqPersonal.id,
+        claimState: "approved",
+        currency: "EUR",
+        totalMinor: 28_900,
+        fxVarianceMinor: 0,
+        submittedOn: "2026-11-22",
+        notes: "Ready for inter-entity payout from bunq B.V. Operating to bunq Personal EUR.",
+      })
+      .returning();
+    if (intClaim) {
+      await db.insert(reimbursementLines).values({
+        claimId: intClaim.id,
+        sourceEntryId: jetbrainsEntry.id,
+        businessCategoryId: catCloud?.id ?? null,
+        splitBps: 10_000,
+        reimbursableMinor: 28_900,
+        currency: "EUR",
+        baseMinor: 28_900,
+        notes: "100% business deductible for Spacefast Holdings B.V. (21% BTW).",
+      });
+    }
+  }
+
+  // 15. Sample Memo & Accountant Share Link
   await db.insert(financeMemos).values({
     title: "2026 Q4 Dutch BTW & Turkish KDV Checklist",
     slug: "2026-q4-vat-checklist",

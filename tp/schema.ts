@@ -22,7 +22,16 @@ import {
   url,
   type AccessCtx,
 } from "typedpress";
-import { ACCOUNT_TYPES, COUNTRIES, CURRENCIES, ENTITY_TYPES, ENTRY_KINDS, slugify } from "./lib/money";
+import {
+  ACCOUNT_TYPES,
+  CLAIM_STATES,
+  COUNTRIES,
+  CURRENCIES,
+  ENTITY_TYPES,
+  ENTRY_KINDS,
+  PAYER_KINDS,
+  slugify,
+} from "./lib/money";
 
 // ---------------------------------------------------------------------------
 // Private files, taxonomy & workspace settings
@@ -58,7 +67,8 @@ export const financeSettings = global(
     workspaceName: text().default("Personal & Ventures Finance"),
     baseCurrency: select(CURRENCIES).default("EUR"),
     fiscalYearStartMonth: integer().min(1).max(12).default(1),
-    aiModel: text().default("gpt-4o-mini"),
+    aiProvider: select(["gemini", "anthropic", "openai"]).default("gemini"),
+    aiModel: text().default("gemini-2.5-flash"),
     autoApproveConfidenceBps: integer().min(5000).max(10000).default(9500),
     accountantNote: text({ multiline: true }).optional(),
   },
@@ -585,6 +595,58 @@ export const ingestProposals = table(
       create: "editor",
       update: "editor",
       delete: "admin",
+    },
+  },
+);
+
+export const reimbursementClaims = table(
+  {
+    title: text().min(1).max(160),
+    payerKind: select(PAYER_KINDS).default("external_counterparty"),
+    businessEntityId: ref(legalEntities).optional().onDelete("setNull"),
+    counterpartyPayeeId: ref(payees).optional().onDelete("setNull"),
+    reimburseToAccountId: ref(accounts).optional().onDelete("setNull"),
+    claimState: select(CLAIM_STATES).default("draft"),
+    currency: select(CURRENCIES).default("EUR"),
+    totalMinor: integer().default(0),
+    reimbursedBaseMinor: integer().optional(),
+    fxVarianceMinor: integer().default(0),
+    payoutTransferId: ref(transfers).optional().onDelete("setNull"),
+    payoutEntryId: ref(entries).optional().onDelete("setNull"),
+    externalRef: text().max(120).optional(),
+    submittedOn: date().optional(),
+    paidOn: date().optional(),
+    notes: text().optional(),
+    createdAt: timestamp().$default(() => new Date().toISOString()),
+  },
+  {
+    access: {
+      read: "authenticated",
+      create: "editor",
+      update: "editor",
+      delete: "admin",
+    },
+  },
+);
+
+export const reimbursementLines = table(
+  {
+    claimId: ref(reimbursementClaims).onDelete("cascade").reverse("lines"),
+    sourceEntryId: ref(entries).onDelete("restrict"),
+    businessCategoryId: ref(categories).optional().onDelete("setNull"),
+    splitBps: integer().min(1).max(10000).default(10000),
+    reimbursableMinor: integer(),
+    currency: select(CURRENCIES).default("EUR"),
+    baseMinor: integer(),
+    receiptFileId: file(inboxFiles).optional(),
+    notes: text().optional(),
+  },
+  {
+    access: {
+      read: "authenticated",
+      create: "editor",
+      update: "editor",
+      delete: "editor",
     },
   },
 );

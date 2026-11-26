@@ -24,10 +24,28 @@ export const ENTRY_KINDS = [
   "fx_conversion",
   "card_payment",
   "inter_entity",
+  "reimbursement",
   "fee",
   "tax",
   "investment",
 ] as const;
+
+export const PAYER_KINDS = ["internal_entity", "external_counterparty"] as const;
+export type PayerKind = "internal_entity" | "external_counterparty";
+
+export const CLAIM_STATES = ["draft", "submitted", "approved", "paid", "rejected"] as const;
+export type ClaimState = "draft" | "submitted" | "approved" | "paid" | "rejected";
+
+export function stripMarkdownJsonFences(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("```")) {
+    const firstNewline = trimmed.indexOf("\n");
+    const body = firstNewline >= 0 ? trimmed.slice(firstNewline + 1) : trimmed.slice(3);
+    const closing = body.lastIndexOf("```");
+    return (closing >= 0 ? body.slice(0, closing) : body).trim();
+  }
+  return trimmed;
+}
 
 export function slugify(input: string): string {
   const clean = input
