@@ -1,4 +1,4 @@
-import { db } from "spacepress/server";
+import { db } from "spacepress";
 import { Link, useFormState } from "spacepress/app";
 import { convertToBaseMinor, formatMinor, formatSignedMinor } from "../../lib/money";
 import { createReimbursementClaim } from "../../server";

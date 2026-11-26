@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation } from "spacepress/react";
-import { api } from "../_generated/api";
+import { useState } from "spacepress/client";
+import { updateReimbursementState } from "../server";
 
 export function ReimbursementActions({
   claimId,
@@ -12,11 +11,16 @@ export function ReimbursementActions({
   initialState: string;
 }) {
   const [claimState, setClaimState] = useState(initialState);
-  const updateState = useMutation(api.actions.updateReimbursementState);
+  const [busy, setBusy] = useState(false);
 
   const transition = async (nextState: "draft" | "submitted" | "approved" | "rejected") => {
-    const res = await updateState.mutate({ claimId, claimState: nextState });
-    setClaimState(res.claimState);
+    setBusy(true);
+    try {
+      const res = await updateReimbursementState({ claimId, claimState: nextState });
+      setClaimState(res.claimState);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -35,7 +39,7 @@ export function ReimbursementActions({
       <button
         type="button"
         className="btn btn-sm"
-        disabled={updateState.pending || claimState === "paid" || claimState === "submitted" || claimState === "approved"}
+        disabled={busy || claimState === "paid" || claimState === "submitted" || claimState === "approved"}
         onClick={() => transition("submitted")}
       >
         Submit Claim
@@ -43,7 +47,7 @@ export function ReimbursementActions({
       <button
         type="button"
         className="btn btn-sm btn-ghost"
-        disabled={updateState.pending || claimState === "paid" || claimState === "approved"}
+        disabled={busy || claimState === "paid" || claimState === "approved"}
         onClick={() => transition("approved")}
       >
         Mark Approved
@@ -51,7 +55,7 @@ export function ReimbursementActions({
       <button
         type="button"
         className="btn btn-sm btn-ghost"
-        disabled={updateState.pending || claimState === "paid" || claimState === "rejected"}
+        disabled={busy || claimState === "paid" || claimState === "rejected"}
         onClick={() => transition("rejected")}
       >
         Reject
@@ -59,7 +63,7 @@ export function ReimbursementActions({
       <button
         type="button"
         className="btn btn-sm btn-ghost"
-        disabled={updateState.pending || claimState === "paid" || claimState === "draft"}
+        disabled={busy || claimState === "paid" || claimState === "draft"}
         onClick={() => transition("draft")}
       >
         Back to Draft

@@ -1,25 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation } from "spacepress/react";
-import { api } from "../_generated/api";
+import { useState } from "spacepress/client";
+import { refreshMarketPrices } from "../server";
 
 export function RefreshPricesButton() {
+  const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [summary, setSummary] = useState("");
-  const refresh = useMutation(api.actions.refreshMarketPrices);
 
   const run = async () => {
+    setBusy(true);
     setDone(false);
-    const res = await refresh.mutate({});
-    setSummary(`Updated ${res.updated} quote(s), skipped ${res.skipped}. Refresh page to see latest values.`);
-    setDone(true);
+    try {
+      const res = await refreshMarketPrices({});
+      setSummary(`Updated ${res.updated} quote(s), skipped ${res.skipped}. Refresh page to see latest values.`);
+      setDone(true);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <div className="action-bar">
-      <button type="button" className="btn btn-ghost" disabled={refresh.pending} onClick={run}>
-        {refresh.pending ? "Refreshing quotes…" : "Refresh Live Prices"}
+      <button type="button" className="btn btn-ghost" disabled={busy} onClick={run}>
+        {busy ? "Refreshing quotes…" : "Refresh Live Prices"}
       </button>
       {done && <span className="pill pill-ok">{summary}</span>}
     </div>

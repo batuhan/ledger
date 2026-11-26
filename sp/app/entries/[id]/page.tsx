@@ -1,12 +1,11 @@
-import type { PageProps } from "./$types";
-import { db } from "spacepress/server";
-import { Link, notFound } from "spacepress/app";
+import { db } from "spacepress";
+import { Link, notFound, type PageProps } from "spacepress/app";
 import { EntryReviewActions } from "../../../components/EntryReviewActions";
 import { formatMinor, formatRateMicros, formatSignedMinor } from "../../../lib/money";
 
 export const metadata = { title: "Entry Detail" };
 
-export default async function EntryDetailPage({ params }: PageProps) {
+export default async function EntryDetailPage({ params }: PageProps<"entries/[id]">) {
   const id = Number(params.id);
   if (!Number.isInteger(id) || id <= 0) notFound();
 

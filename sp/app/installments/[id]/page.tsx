@@ -1,11 +1,10 @@
-import type { PageProps } from "./$types";
-import { db } from "spacepress/server";
-import { Link, notFound } from "spacepress/app";
+import { db } from "spacepress";
+import { Link, notFound, type PageProps } from "spacepress/app";
 import { formatMinor, formatSignedMinor } from "../../../lib/money";
 
 export const metadata = { title: "Installment Plan" };
 
-export default async function InstallmentDetailPage({ params }: PageProps) {
+export default async function InstallmentDetailPage({ params }: PageProps<"installments/[id]">) {
   const id = Number(params.id);
   if (!Number.isInteger(id) || id <= 0) notFound();
 

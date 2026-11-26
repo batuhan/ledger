@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { uploadFile, useMutation } from "spacepress/react";
-import { api } from "../_generated/api";
+import { uploadFile, useState } from "spacepress/client";
+import { registerUpload } from "../server";
 import styles from "./InboxDropzone.module.css";
 
 export function InboxDropzone({ entityId = 0, accountId = 0 }: { entityId?: number; accountId?: number }) {
@@ -14,7 +13,6 @@ export function InboxDropzone({ entityId = 0, accountId = 0 }: { entityId?: numb
   const [hasStatus, setHasStatus] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [hasResult, setHasResult] = useState(false);
-  const register = useMutation(api.actions.registerUpload);
 
   const handleFile = async (file: File) => {
     setUploading(true);
@@ -25,7 +23,7 @@ export function InboxDropzone({ entityId = 0, accountId = 0 }: { entityId?: numb
     setHasStatus(true);
     try {
       const uploaded = await uploadFile("inboxFiles", file, { filename: file.name });
-      const registered = await register.mutate({
+      const registered = await registerUpload({
         fileId: uploaded.id,
         filename: uploaded.filename,
         mime: uploaded.mime,

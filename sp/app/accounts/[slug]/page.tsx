@@ -1,14 +1,13 @@
-import type { PageProps } from "./$types";
-import { db } from "spacepress/server";
-import { Content, Link, notFound } from "spacepress/app";
+import { db } from "spacepress";
+import { Content, Link, notFound, type PageProps } from "spacepress/app";
 import { InboxDropzone } from "../../../components/InboxDropzone";
 import { formatMinor, formatSignedMinor } from "../../../lib/money";
 
-export const metadata = ({ item }: PageProps) => ({
+export const metadata = ({ item }: PageProps<"accounts/[slug]">) => ({
   title: item?.name ?? "Account",
 });
 
-export default async function AccountDetailPage({ item }: PageProps) {
+export default async function AccountDetailPage({ item }: PageProps<"accounts/[slug]">) {
   if (!item) notFound();
   const entity = await db.query.legalEntities.findFirst({ where: { id: item.entityId } });
   const institution = await db.query.institutions.findFirst({ where: { id: item.institutionId } });

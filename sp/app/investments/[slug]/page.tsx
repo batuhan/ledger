@@ -1,6 +1,5 @@
-import type { PageProps } from "./$types";
-import { db } from "spacepress/server";
-import { Content, Link, notFound, useFormState } from "spacepress/app";
+import { db } from "spacepress";
+import { Content, Link, notFound, useFormState, type PageProps } from "spacepress/app";
 import {
   computePosition,
   formatMinor,
@@ -11,11 +10,11 @@ import {
 } from "../../../lib/money";
 import { recordTrade, updateSecurityPrice } from "../../../server";
 
-export const metadata = ({ item }: PageProps) => ({
+export const metadata = ({ item }: PageProps<"investments/[slug]">) => ({
   title: item ? `${item.ticker} · ${item.name}` : "Security",
 });
 
-export default async function SecurityDetailPage({ item }: PageProps) {
+export default async function SecurityDetailPage({ item }: PageProps<"investments/[slug]">) {
   if (!item) notFound();
 
   const priceForm = useFormState(updateSecurityPrice);

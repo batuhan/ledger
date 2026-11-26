@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation } from "spacepress/react";
-import { api } from "../_generated/api";
+import { useState } from "spacepress/client";
+import { applyAllProposals, approveProposal, rejectProposal } from "../server";
 
 export function ProposalActions({
   proposalId,
@@ -12,20 +11,27 @@ export function ProposalActions({
   initialStatus: string;
 }) {
   const [status, setStatus] = useState(initialStatus);
-  const approveMut = useMutation(api.actions.approveProposal);
-  const rejectMut = useMutation(api.actions.rejectProposal);
+  const [busy, setBusy] = useState(false);
 
   const approve = async () => {
-    const res = await approveMut.mutate({ proposalId });
-    setStatus(res.status);
+    setBusy(true);
+    try {
+      const res = await approveProposal({ proposalId });
+      setStatus(res.status);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const reject = async () => {
-    const res = await rejectMut.mutate({ proposalId });
-    setStatus(res.status);
+    setBusy(true);
+    try {
+      const res = await rejectProposal({ proposalId });
+      setStatus(res.status);
+    } finally {
+      setBusy(false);
+    }
   };
-
-  const busy = approveMut.pending || rejectMut.pending;
 
   return (
     <div className="action-bar">
@@ -42,16 +48,21 @@ export function ProposalActions({
 
 export function ApplyAllButton({ ingestItemId, pendingCount }: { ingestItemId: number; pendingCount: number }) {
   const [remaining, setRemaining] = useState(pendingCount);
-  const applyAll = useMutation(api.actions.applyAllProposals);
+  const [busy, setBusy] = useState(false);
 
   const run = async () => {
-    await applyAll.mutate({ ingestItemId });
-    setRemaining(0);
+    setBusy(true);
+    try {
+      await applyAllProposals({ ingestItemId });
+      setRemaining(0);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
-    <button type="button" className="btn" disabled={applyAll.pending || remaining === 0} onClick={run}>
-      {applyAll.pending ? "Applying…" : remaining === 0 ? "All proposals applied" : `Apply all ${remaining} pending`}
+    <button type="button" className="btn" disabled={busy || remaining === 0} onClick={run}>
+      {busy ? "Applying…" : remaining === 0 ? "All proposals applied" : `Apply all ${remaining} pending`}
     </button>
   );
 }

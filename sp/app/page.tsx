@@ -1,4 +1,4 @@
-import { db } from "spacepress/server";
+import { db } from "spacepress";
 import { Link, useFormState } from "spacepress/app";
 import { InboxDropzone } from "../components/InboxDropzone";
 import { computePosition, convertToBaseMinor, formatMinor, formatPctBps, formatQtyMicros, formatSignedMinor } from "../lib/money";

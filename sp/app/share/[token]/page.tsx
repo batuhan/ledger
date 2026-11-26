@@ -1,11 +1,10 @@
-import type { PageProps } from "./$types";
-import { notFound } from "spacepress/app";
-import { accounts, entries, legalEntities, shareLinks } from "spacepress/server/db";
+import { notFound, type PageProps } from "spacepress/app";
+import { accounts, entries, legalEntities, shareLinks } from "spacepress:db";
 import { formatMinor, formatSignedMinor } from "../../../lib/money";
 
 export const metadata = { title: "Shared Finance View" };
 
-export default async function ShareViewPage({ params }: PageProps) {
+export default async function ShareViewPage({ params }: PageProps<"share/[token]">) {
   const matched = await shareLinks.system.list({ where: { token: params.token }, limit: 1 });
   const link = matched[0] ?? null;
   if (!link || link.revokedAt !== null) notFound();

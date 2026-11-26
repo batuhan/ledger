@@ -1,14 +1,13 @@
-import type { PageProps } from "./$types";
-import { db } from "spacepress/server";
-import { Content, Link, notFound } from "spacepress/app";
+import { db } from "spacepress";
+import { Content, Link, notFound, type PageProps } from "spacepress/app";
 import { ApplyAllButton, ProposalActions } from "../../../components/ProposalActions";
 import { formatSignedMinor } from "../../../lib/money";
 
-export const metadata = ({ item }: PageProps) => ({
+export const metadata = ({ item }: PageProps<"inbox/[slug]">) => ({
   title: item?.title ?? "Import Detail",
 });
 
-export default async function InboxDetailPage({ item }: PageProps) {
+export default async function InboxDetailPage({ item }: PageProps<"inbox/[slug]">) {
   if (!item) notFound();
   const proposals = await db.query.ingestProposals.findMany({
     where: { ingestItemId: item.id },

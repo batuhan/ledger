@@ -1,12 +1,11 @@
-import type { PageProps } from "./$types";
-import { db } from "spacepress/server";
-import { Content, Link, notFound } from "spacepress/app";
+import { db } from "spacepress";
+import { Content, Link, notFound, type PageProps } from "spacepress/app";
 
-export const metadata = ({ item }: PageProps) => ({
+export const metadata = ({ item }: PageProps<"memos/[slug]">) => ({
   title: item?.title ?? "Memo",
 });
 
-export default async function MemoDetailPage({ item }: PageProps) {
+export default async function MemoDetailPage({ item }: PageProps<"memos/[slug]">) {
   if (!item) notFound();
   const entity = item.entityId ? await db.query.legalEntities.findFirst({ where: { id: item.entityId } }) : null;
 

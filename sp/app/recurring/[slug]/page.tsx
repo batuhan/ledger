@@ -1,13 +1,12 @@
-import type { PageProps } from "./$types";
-import { db } from "spacepress/server";
-import { Content, Link, notFound } from "spacepress/app";
+import { db } from "spacepress";
+import { Content, Link, notFound, type PageProps } from "spacepress/app";
 import { formatSignedMinor } from "../../../lib/money";
 
-export const metadata = ({ item }: PageProps) => ({
+export const metadata = ({ item }: PageProps<"recurring/[slug]">) => ({
   title: item?.name ?? "Recurring Item",
 });
 
-export default async function RecurringDetailPage({ item }: PageProps) {
+export default async function RecurringDetailPage({ item }: PageProps<"recurring/[slug]">) {
   if (!item) notFound();
   const entity = await db.query.legalEntities.findFirst({ where: { id: item.entityId } });
   const account = await db.query.accounts.findFirst({ where: { id: item.accountId } });

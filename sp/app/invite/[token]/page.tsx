@@ -1,12 +1,11 @@
-import type { PageProps } from "./$types";
-import { home_url, is_user_logged_in, wp_login_url } from "spacepress/server/wp";
-import { Link, notFound, useFormState } from "spacepress/app";
-import { invitations, legalEntities } from "spacepress/server/db";
+import { home_url, is_user_logged_in, wp_login_url } from "php/wordpress";
+import { Link, notFound, useFormState, type PageProps } from "spacepress/app";
+import { invitations, legalEntities } from "spacepress:db";
 import { acceptInvitation } from "../../../server";
 
 export const metadata = { title: "Accept Invitation" };
 
-export default async function InvitePage({ params }: PageProps) {
+export default async function InvitePage({ params }: PageProps<"invite/[token]">) {
   const form = useFormState(acceptInvitation);
   const matched = await invitations.system.list({ where: { token: params.token }, limit: 1 });
   const inv = matched[0] ?? null;

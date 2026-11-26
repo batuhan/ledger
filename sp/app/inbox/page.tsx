@@ -1,4 +1,4 @@
-import { db } from "spacepress/server";
+import { db } from "spacepress";
 import { Link } from "spacepress/app";
 import { InboxDropzone } from "../../components/InboxDropzone";
 

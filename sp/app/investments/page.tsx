@@ -1,4 +1,4 @@
-import { db } from "spacepress/server";
+import { db } from "spacepress";
 import { Link, useFormState } from "spacepress/app";
 import { RefreshPricesButton } from "../../components/RefreshPricesButton";
 import { computePosition, formatMinor, formatPctBps, formatQtyMicros, formatSignedMinor } from "../../lib/money";

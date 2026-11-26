@@ -1,4 +1,4 @@
-import { db } from "spacepress/server";
+import { db } from "spacepress";
 import { Link, useFormState } from "spacepress/app";
 import { createInvitation, createShareLink, revokeGrant, revokeShareLink } from "../../server";
 

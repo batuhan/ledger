@@ -1,13 +1,12 @@
-import type { PageProps } from "./$types";
-import { db } from "spacepress/server";
-import { Link, notFound, useFormState } from "spacepress/app";
+import { db } from "spacepress";
+import { Link, notFound, useFormState, type PageProps } from "spacepress/app";
 import { ReimbursementActions } from "../../../components/ReimbursementActions";
 import { formatMinor, formatSignedMinor } from "../../../lib/money";
 import { addReimbursementLine, settleReimbursementClaim } from "../../../server";
 
 export const metadata = { title: "Reimbursement Claim" };
 
-export default async function ReimbursementDetailPage({ params }: PageProps) {
+export default async function ReimbursementDetailPage({ params }: PageProps<"reimbursements/[id]">) {
   const id = Number(params.id);
   if (!Number.isInteger(id) || id <= 0) notFound();
 
